@@ -1,5 +1,7 @@
 # Portal de Treinamentos e Certificados — Protótipo A3
 
+Repositório: https://github.com/teusluv/a3-qualidade-software
+
 Protótipo da disciplina **Garantia da Qualidade de Software** (UNIFACS), projeto A3.
 Cenário: **Hospital da Mulher**, em Feira de Santana. Todos os dados são **fictícios**.
 
@@ -244,8 +246,8 @@ navegadores). O CT-18 está fora do escopo.
 ### Integração contínua
 
 O arquivo `.github/workflows/ci.yml` roda a cada push na `main` e a cada pull request: instala
-as dependências, roda `ruff`, `bandit`, `pytest` com cobertura e confere a meta de 80%. Só
-funciona depois de o projeto estar no GitHub; confirmem a primeira execução na aba **Actions**.
+as dependências, roda `ruff`, `bandit`, `pytest` com cobertura e confere a meta de 80%. A primeira execução passou
+em 18/11/2026 (CI #1, commit 8d1dd3c, 49 s, Python 3.12 no ubuntu-latest).
 
 ---
 

@@ -1,0 +1,20 @@
+### CI - primeira execucao (GitHub Actions)
+
+Repositorio: https://github.com/teusluv/a3-qualidade-software  (publico)
+Workflow:    .github/workflows/ci.yml  ("CI")
+Execucao:    CI #1, commit 8d1dd3c, branch main, disparada pelo push de 18/11/2026
+Resultado:   SUCESSO (verde), 49 segundos
+Ambiente:    ubuntu-latest, Python 3.12 (setup-python)
+
+Etapas executadas pelo pipeline:
+  1. checkout
+  2. setup-python 3.12 com cache de pip
+  3. pip install -r requirements.txt
+  4. ruff check .
+  5. bandit -q -r app
+  6. pytest --cov=app --cov-branch --cov-report=term-missing --cov-report=xml
+  7. coverage report --include="app/services/avaliacao.py" --fail-under=80
+  8. upload do relatorio de cobertura (artefato "cobertura")
+
+Observacao de portabilidade: a suite roda em Python 3.13.18 (ambiente local da execucao
+de 18/11) e em Python 3.12 (CI). Falta confirmar em Windows.

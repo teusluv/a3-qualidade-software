@@ -17,6 +17,9 @@ commit (sem hash de commit)**.
 > execução usou **Python 3.13.18** e os 174 testes passaram, o que é evidência adicional de
 > portabilidade. Ainda falta confirmar Windows, Python 3.11, Firefox e Edge (CT-15 / Portabilidade).
 
+**Repositório:** https://github.com/teusluv/a3-qualidade-software (público) ·
+**CI:** primeira execução verde em 18/11/2026 (CI #1, commit 8d1dd3c, 49 s, Python 3.12).
+
 **Comandos executados:** `python seed.py` · `pytest` · `pytest -v` ·
 `pytest --cov=app --cov-branch` · `pytest --cov=app.services.avaliacao --cov-branch` ·
 `ruff check .` · `bandit -r app` · scripts de fluxo HTTP (saídas em `docs/evidencias/`).

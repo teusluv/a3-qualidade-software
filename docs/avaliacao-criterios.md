@@ -39,7 +39,7 @@ executar o caso correspondente (`docs/execucao-testes.md`).
 | Usabilidade | Interface responsiva (Bootstrap); 360 px sem rolagem lateral; 0 violações no axe-core em 9 páginas (ambiente do autor) | Lighthouse; fluxo inteiro só com teclado; teste com usuários | Atende em parte: 0 problemas na checagem estática de 8 páginas; falta a verificação no navegador | `evidencias/CT-15-acessibilidade-estatica.txt` |
 | Eficiência | Teste local de 20 emissões (CT-08); login carregou em cerca de 0,1 s no ambiente do autor | Lighthouse (CT-14); carga de 500 acessos (RNF-01, fora do escopo) | Atende com folga no ambiente local: certificado em 3,3 ms (meta de 5 s) e páginas em até 2,8 ms | `evidencias/CT-08-tempo-emissao.txt` |
 | Manutenibilidade | Regras em `config.py`; `services/` sem Flask; ruff e bandit sem avisos; **205 testes** | Métricas formais; os pontos de melhoria estão em `docs/revisao-de-codigo.md` | Atende: ruff "All checks passed", bandit "No issues identified" (1.038 linhas), cobertura de 97% no pacote `app` | `evidencias/estatica-ruff.txt`, `evidencias/estatica-bandit.txt`, `evidencias/CT-17-cobertura-geral.txt` |
-| Portabilidade | Verificado no Chromium, Python 3.12, Linux | Firefox, Edge, Windows, Python 3.11, celular real | Atende em parte, com um ganho: a suíte também passou em **Python 3.13.18** (Linux); faltam Windows, Firefox, Edge e celular | `evidencias/ambiente.txt` |
+| Portabilidade | Verificado no Chromium, Python 3.12, Linux | Firefox, Edge, Windows, Python 3.11, celular real | Atende em parte, com dois ganhos: a suíte passou em **Python 3.13.18** (local) e em **Python 3.12** (CI, ubuntu-latest); faltam Windows, Firefox, Edge e celular | `evidencias/ambiente.txt`, `evidencias/CI-primeira-execucao.txt` |
 | Segurança | Hash de senha, CSRF, sessão com HttpOnly/SameSite/expiração, perfil e dono verificados no servidor, SQL parametrizado, escape automático, logs sem senha, **bloqueio de força bruta no login (D-02)** e **cabeçalhos de segurança em toda resposta (D-03)** | Teste de invasão por terceiros; HSTS e cookie `Secure` dependem de HTTPS | Atende: bateria OWASP Top 10 com **80 de 83** verificações passando e nenhuma falha de lógica (injeção, IDOR, CSRF, adulteração de nota e SSTI recusados). Os 3 alertas restantes dependem de HTTPS ou do servidor de produção (D-04) | `relatorio-seguranca.md`, `evidencias/SEG-owasp-top10-apos-correcao.txt`, `evidencias/D-03-cabecalhos.txt` |
 
 ## 3. Metas do projeto
@@ -69,4 +69,6 @@ Principais riscos que permanecem:
 4. **Desempenho em produção:** os números de CT-08 e de resposta das páginas valem para o
    ambiente local com SQLite; os 500 acessos simultâneos (RNF-01) e a disponibilidade de 99,5%
    (RNF-03) continuam fora do escopo.
-5. **CI ainda não executado:** o `ci.yml` só roda depois de o projeto estar no GitHub.
+5. ~~CI ainda não executado~~ **resolvido:** o projeto está em
+   https://github.com/teusluv/a3-qualidade-software e a primeira execução do CI passou
+   (CI #1, commit 8d1dd3c, 49 s, Python 3.12 no ubuntu-latest).
