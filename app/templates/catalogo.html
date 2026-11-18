@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block titulo %}Cursos{% endblock %}
+{% block conteudo %}
+<h1 class="h4 mb-3">Cursos disponíveis</h1>
+{% for c in itens %}
+<div class="card mb-3 shadow-sm">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between gap-2">
+      <h2 class="h5 mb-1">{{ c['titulo'] }}</h2>
+      <div>
+        {% if c['obrigatorio'] %}<span class="badge text-bg-danger">Obrigatório</span>{% endif %}
+        {% if c['status'] == 'suspenso' %}<span class="badge text-bg-secondary">Suspenso</span>{% endif %}
+      </div>
+    </div>
+    <p class="text-body-secondary small mb-2">
+      Carga horária: {{ c['carga_horaria'] }} h · Nota mínima: {{ c['nota_minima'] }}%
+    </p>
+    {% if c['inscricao_id'] %}
+      <div class="progress mb-2" role="progressbar" aria-label="Progresso"
+           aria-valuenow="{{ progresso(c['concluidas'], c['total_atividades']) }}" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar" style="width: {{ progresso(c['concluidas'], c['total_atividades']) }}%">
+          {{ progresso(c['concluidas'], c['total_atividades']) }}%
+        </div>
+      </div>
+      <p class="small mb-2">{{ c['concluidas'] }} de {{ c['total_atividades'] }} atividades concluídas
+        {% if c['melhor_nota'] is not none %} · Melhor nota: {{ c['melhor_nota'] }}%{% endif %}
+        {% if c['certificado_id'] %} · <strong>Certificado emitido</strong>{% endif %}</p>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('cursos.detalhe', curso_id=c['id']) }}">Continuar</a>
+    {% else %}
+      {% if not disponivel(c) %}
+      <p class="small text-body-secondary mb-2">Indisponível para novos inícios.</p>
+      {% endif %}
+      <a class="btn btn-outline-primary btn-sm" href="{{ url_for('cursos.detalhe', curso_id=c['id']) }}">Ver curso</a>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<p class="text-body-secondary">Nenhum curso disponível para o seu setor.</p>
+{% endfor %}
+{% endblock %}

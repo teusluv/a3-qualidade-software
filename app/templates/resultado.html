@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block titulo %}Resultado{% endblock %}
+{% block conteudo %}
+<h1 class="h4">Resultado · {{ curso['titulo'] }}</h1>
+<div class="card card-body mb-3">
+  <p class="display-6 mb-1">{{ tentativa['nota'] }}%</p>
+  <p class="mb-1">{{ tentativa['acertos'] }} de {{ tentativa['total'] }} acertos · Nota mínima: {{ nota_minima }}%</p>
+  {% if aprovado %}
+    <p class="fw-bold text-success mb-0">Aprovado</p>
+  {% else %}
+    <p class="fw-bold text-danger mb-0">Reprovado</p>
+  {% endif %}
+</div>
+<p>Melhor nota: <strong>{{ curso['melhor_nota'] }}%</strong> · Tentativas restantes: {{ estado.tentativas_restantes }}</p>
+<a class="btn btn-outline-primary" href="{{ url_for('cursos.detalhe', curso_id=curso['id']) }}">Voltar ao curso</a>
+{% if estado.elegivel_certificado %}
+<form method="post" class="d-inline" action="{{ url_for('certificados.emitir', curso_id=curso['id']) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="btn btn-success">Emitir / baixar certificado</button>
+</form>
+{% endif %}
+{% endblock %}

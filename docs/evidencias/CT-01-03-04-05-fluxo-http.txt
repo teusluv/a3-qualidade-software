@@ -1,0 +1,33 @@
+### CT-01, CT-03, CT-04, CT-05 - fluxo por HTTP (banco recem-semeado)
+execucao UTC: 2026-11-18 22:07:34
+
+=== CT-01 login ===
+GET /login -> 200 em 10 ms
+[OK ] CT-01 senha invalida negada — 401
+[OK ] CT-01 mensagem generica (nao diz qual campo)
+[OK ] CT-01 login valido — 200 http://127.0.0.1:5000/cursos em 63 ms
+
+=== CT-03 catalogo ===
+GET /cursos -> 200 em 2 ms
+[OK ] CT-03 curso A visivel
+[OK ] CT-03 curso B (Enfermagem) visivel
+[OK ] CT-03 curso D arquivado fora do catalogo
+[OK ] CT-03 obrigatorio identificado
+   cursos no catalogo: {'1': 'Segurança do Paciente', '2': 'Higienização das Mãos e Controle de Infecção', '3': 'Biossegurança em Laboratório'}
+[OK ] CT-03 curso suspenso: botao desabilitado — status 200
+[OK ] CT-03 iniciar suspenso bloqueado — 200
+
+=== CT-04 progresso ===
+GET /cursos/1 -> 200 em 2 ms
+   atividades: ['1', '2', '3', '4']
+   apos atividade 1: ['70', '25', '25']
+   apos atividade 2: ['70', '50', '50']
+[OK ] CT-04 2 de 4 = 50% — ['70', '50', '50']
+   apos atividade 3: ['70', '75', '75']
+   apos atividade 4: ['70', '100', '100']
+
+=== CT-05 avaliacao ===
+GET avaliacao -> 200 em 4 ms
+   questoes: 10
+[OK ] CT-05 gabarito nao exposto no HTML — nenhuma pista
+[OK ] CT-05 avaliacao com 10 questoes — 10 questoes

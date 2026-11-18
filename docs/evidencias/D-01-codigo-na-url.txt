@@ -1,0 +1,13 @@
+### Observacao D-01 - o codigo do certificado aparece no log de acesso do servidor
+A tela 'Verificar certificado' envia o formulario por GET, logo o codigo vai na URL.
+Trecho real do log de acesso do servidor Flask durante a execucao:
+
+GET /verificar?codigo=CsiG9AlTmYpyfHhSI79BjA
+GET /verificar?codigo=CODIGOINEXISTENTE123
+GET /verificar?codigo=
+GET /verificar?codigo=<script>alert(1)</script>
+GET /verificar?codigo='%20OR%201%3D1%20--
+GET /verificar?codigo=../../etc/passwd
+
+Consequencia: o codigo fica no historico do navegador e no log de acesso do servidor.
+Nao e falha de funcionamento: a consulta publica funciona e nao expoe dados pessoais (CT-12 aprovado).

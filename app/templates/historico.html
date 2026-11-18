@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titulo %}Histórico{% endblock %}
+{% block conteudo %}
+<h1 class="h4 mb-3">Meu histórico de capacitações</h1>
+<div class="table-responsive">
+<table class="table table-sm align-middle">
+  <thead><tr><th>Curso</th><th>Situação do curso</th><th>Melhor nota</th><th>Certificado</th></tr></thead>
+  <tbody>
+  {% for c in itens %}
+    <tr>
+      <td>{{ c['titulo'] }}</td>
+      <td>{{ c['status']|capitalize }}</td>
+      <td>{% if c['melhor_nota'] is not none %}{{ c['melhor_nota'] }}%{% else %}-{% endif %}</td>
+      <td>
+        {% if c['certificado_id'] %}
+        <a href="{{ url_for('certificados.baixar_pdf', certificado_id=c['certificado_id']) }}">Baixar PDF</a>
+        {% else %}-{% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4" class="text-body-secondary">Você ainda não iniciou nenhum curso.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

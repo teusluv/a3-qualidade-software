@@ -1,0 +1,21 @@
+/* Ajustes mínimos; o restante vem do Bootstrap. */
+main { max-width: 860px; }
+.cartao-login { max-width: 420px; margin: 0 auto; }
+
+/* Menu com contraste alto (WCAG AA): fundo azul escuro e links brancos. */
+.navbar-app { background-color: #1f3a5f; }
+.navbar-app .navbar-brand,
+.navbar-app .nav-link { color: #fff; }
+.navbar-app .nav-link:hover,
+.navbar-app .nav-link:focus { color: #fff; text-decoration: underline; }
+
+/* Azul mais escuro para links e botões de contorno sobre o fundo cinza claro (contraste AA). */
+:root { --bs-link-color: #0a58ca; --bs-link-color-rgb: 10, 88, 202; }
+.btn-outline-primary {
+  --bs-btn-color: #0a58ca;
+  --bs-btn-border-color: #0a58ca;
+  --bs-btn-hover-bg: #0a58ca;
+  --bs-btn-hover-border-color: #0a58ca;
+  --bs-btn-active-bg: #0a58ca;
+  --bs-btn-active-border-color: #0a58ca;
+}

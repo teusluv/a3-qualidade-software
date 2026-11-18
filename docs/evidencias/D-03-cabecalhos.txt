@@ -1,0 +1,17 @@
+### Cabecalhos de seguranca na resposta real (apos D-03)
+execucao UTC: 2026-11-18 22:37:56
+
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.9 Python/3.13.18
+Date: Wed, 18 Nov 2026 22:37:56 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 1834
+Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net; img-src 'self' data:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+Permissions-Policy: geolocation=(), microphone=(), camera=()
+Vary: Cookie
+Set-Cookie: session=eyJjc3JmX3Rva2VuIjoiYzI1YjA1YjQxNzI5N2RhYTEwY2FkOWU0MThhYWQ4NjRhZjlmZWE4ZiJ9.av4oxA.C-Oz6UcZpuyw6ucgvmR2P8gt1Xg; HttpOnly; Path=/; SameSite=Lax
+Connection: close
+

@@ -1,0 +1,28 @@
+
+--- CT-08: 20 emissoes (emitir + gerar PDF) ---
+emissao  1:     4.5 ms
+emissao  2:     3.4 ms
+emissao  3:     3.2 ms
+emissao  4:     3.4 ms
+emissao  5:     3.3 ms
+emissao  6:     3.3 ms
+emissao  7:     3.3 ms
+emissao  8:     3.5 ms
+emissao  9:     3.4 ms
+emissao 10:     3.3 ms
+emissao 11:     3.3 ms
+emissao 12:     3.2 ms
+emissao 13:     3.1 ms
+emissao 14:     3.3 ms
+emissao 15:     3.1 ms
+emissao 16:     3.3 ms
+emissao 17:     3.2 ms
+emissao 18:     3.6 ms
+emissao 19:     3.4 ms
+emissao 20:     3.7 ms
+minimo : 3.1 ms
+mediana: 3.3 ms
+maximo : 4.5 ms
+dentro de 5 s: 20/20
+.
+1 passed in 0.52s

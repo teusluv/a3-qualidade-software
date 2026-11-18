@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  qualidade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Análise estática (ruff)
+        run: ruff check .
+
+      - name: Análise de segurança (bandit)
+        run: bandit -q -r app
+
+      - name: Testes com cobertura de ramos
+        run: pytest --cov=app --cov-branch --cov-report=term-missing --cov-report=xml
+
+      - name: Meta de cobertura do módulo de avaliação (80%)
+        run: coverage report --include="app/services/avaliacao.py" --fail-under=80
+
+      - name: Guardar relatório de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura
+          path: coverage.xml

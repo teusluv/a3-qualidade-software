@@ -1,0 +1,17 @@
+### CT-15 (parcial) - checagens estaticas de acessibilidade
+execucao UTC: 2026-11-18 22:06:36
+
+/login                 http=200  OK
+/verificar             http=200  OK
+/cursos                http=200  OK
+/cursos/1              http=200  OK
+/cursos/1/avaliacao    http=200  OK
+/historico             http=200  OK
+/admin/                http=200  OK
+/nao-existe            http=404  OK
+
+--- CSS: larguras fixas / media queries ---
+   larguras fixas em px: ['width: 860px', 'width: 420px']
+   media queries: 0
+
+TOTAL de problemas estaticos: 0

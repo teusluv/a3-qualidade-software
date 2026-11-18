@@ -1,0 +1,114 @@
+### Bateria de seguranca APOS as correcoes (OWASP Top 10) - Portal A3
+execucao UTC: 2026-11-18 22:37:24
+alvo: http://127.0.0.1:5000 | correcoes D-02 (forca bruta) e D-03 (cabecalhos) aplicadas
+
+======================================================================
+A01 - CONTROLE DE ACESSO
+======================================================================
+[PASSA ] A01 | anonimo em /cursos -> HTTP 302 -> /login
+[PASSA ] A01 | anonimo em /historico -> HTTP 302 -> /login
+[PASSA ] A01 | anonimo em /admin/ -> HTTP 302 -> /login
+[PASSA ] A01 | anonimo em /cursos/1 -> HTTP 302 -> /login
+[PASSA ] A01 | anonimo em /cursos/1/avaliacao -> HTTP 302 -> /login
+[PASSA ] A01 | colaborador em /admin/ -> HTTP 403
+[PASSA ] A01 | colaborador muda status do curso -> HTTP 400 (400 = CSRF barrou antes do perfil)
+[PASSA ] A01 | IDOR: outro colaborador baixa o PDF alheio -> HTTP 404
+[PASSA ] A01 | administrador baixa o PDF (previsto) -> HTTP 200
+[PASSA ] A01 | anonimo baixa o PDF -> HTTP 302 -> /login
+[PASSA ] A01 | PDF id inexistente 999 -> HTTP 404
+[PASSA ] A01 | PDF id inexistente 0 -> HTTP 404
+[PASSA ] A01 | PDF id inexistente -1 -> HTTP 404
+[PASSA ] A01 | IDOR: resultado de avaliacao alheia -> HTTP 404
+[PASSA ] A01 | curso de outro setor pela URL (1002 Farmacia no curso B de Enfermagem) -> HTTP 404
+[PASSA ] A01 | avaliacao de curso de outro setor -> HTTP 404
+[PASSA ] A01 | curso arquivado sem historico -> HTTP 404
+======================================================================
+A03 - INJECAO
+======================================================================
+[PASSA ] A03 | SQLi no login: ' OR '1'='1 -> HTTP 401
+[PASSA ] A03 | SQLi no login: admin'-- -> HTTP 401
+[PASSA ] A03 | SQLi no login: 1001' -- -> HTTP 401
+[PASSA ] A03 | SQLi no login:  ' OR 1=1 -- -> HTTP 401
+[PASSA ] A03 | SQLi no login: 1001" OR "1"="1 -> HTTP 401
+[PASSA ] A03 | SQLi cega por tempo no login -> 0.01s
+[PASSA ] A03 | SQLi na verificacao: ' OR 1=1 -- -> HTTP 400
+[PASSA ] A03 | SQLi na verificacao: '; DROP TABLE cert -> HTTP 400
+[PASSA ] A03 | SQLi na verificacao: %' -- -> HTTP 400
+[PASSA ] A03 | tabela certificado continua existindo apos DROP
+[PASSA ] A03 | XSS refletido: <script>alert(1)</scri -> HTTP 400
+[PASSA ] A03 | XSS no login: <script>alert(1)</scri -> HTTP 401
+[PASSA ] A03 | XSS refletido: "><img src=x onerror=a -> HTTP 400
+[PASSA ] A03 | XSS no login: "><img src=x onerror=a -> HTTP 401
+[PASSA ] A03 | XSS refletido: " autofocus onfocus="a -> HTTP 400
+[PASSA ] A03 | XSS no login: " autofocus onfocus="a -> HTTP 401
+[PASSA ] A03 | XSS refletido: <svg/onload=alert(1)> -> HTTP 400
+[PASSA ] A03 | XSS no login: <svg/onload=alert(1)> -> HTTP 401
+[PASSA ] A03 | SSTI: {{7*7}} -> HTTP 400
+[PASSA ] A03 | SSTI: ${7*7} -> HTTP 400
+[PASSA ] A03 | SSTI: {{config.SECRET_KEY} -> HTTP 400
+[PASSA ] A03 | SSTI: {{''.__class__}} -> HTTP 400
+[PASSA ] A03 | Path traversal: ../../etc/passwd -> HTTP 400
+[PASSA ] A03 | Path traversal: ..%2f..%2fetc%2fpass -> HTTP 400
+[PASSA ] A03 | Path traversal: /etc/passwd -> HTTP 400
+======================================================================
+A04/A07 - AUTENTICACAO E SESSAO
+======================================================================
+[PASSA ] A07 | sessao muda de valor apos o login (session fixation) -> cookie renovado
+[PASSA ] A02 | cookie com HttpOnly -> session=eyJjc3JmX3Rva2VuIjoiNzQ1YTRmMzJkNmI0YTg3OTU4ZDFmMzBiMzQwYmZjZD
+[PASSA ] A02 | cookie com SameSite
+[ALERTA] A02 | cookie com Secure (esperado desligado em HTTP local) -> desligado: correto em HTTP, ligar em HTTPS
+[PASSA ] A07 | sessao invalidada apos logout -> HTTP 200
+[PASSA ] A07 | login sem token CSRF -> HTTP 400
+[PASSA ] A07 | POST iniciar curso sem token CSRF -> HTTP 400
+[PASSA ] A07 | POST certificado sem token CSRF -> HTTP 400
+[PASSA ] A01 | open redirect pelo parametro next -> sem redirect externo
+[PASSA ] A07 | token CSRF de outra sessao e recusado -> HTTP 400
+======================================================================
+A05 - CONFIGURACAO E EXPOSICAO
+======================================================================
+[PASSA ] A05 | cabecalho CSP -> presente
+[PASSA ] A05 | cabecalho X-Frame-Options -> presente
+[PASSA ] A05 | cabecalho X-Content-Type-Options -> presente
+[ALERTA] A05 | cabecalho HSTS -> ausente
+[PASSA ] A05 | cabecalho Referrer-Policy -> presente
+[ALERTA] A05 | cabecalho Server nao detalha versao -> Werkzeug/3.1.9 Python/3.13.18
+[PASSA ] A05 | 404 sem detalhe interno -> HTTP 404
+[PASSA ] A05 | console do debugger fechado -> HTTP 404
+[PASSA ] A05 | arquivo sensivel /instance/portal.db -> HTTP 404
+[PASSA ] A05 | arquivo sensivel /portal.db -> HTTP 404
+[PASSA ] A05 | arquivo sensivel /app/config.py -> HTTP 404
+[PASSA ] A05 | arquivo sensivel /.git/config -> HTTP 404
+[PASSA ] A05 | arquivo sensivel /static/ -> HTTP 404
+[PASSA ] A05 | arquivo sensivel /.env -> HTTP 404
+[PASSA ] A05 | tipo invalido na URL -> HTTP 404
+======================================================================
+A08 - INTEGRIDADE E REGRA DE NEGOCIO (adulteracao)
+======================================================================
+[PASSA ] A08 | campos extras (nota/aprovado) nao sao aceitos -> nota 100% com 10 acertos reais
+[PASSA ] A08 | avaliacao reaberta apos aprovacao (A-07 permite ate 3) -> HTTP 200
+[PASSA ] A08 | questao fora do gabarito ignorada -> nota 0%
+[PASSA ] A08 | situacao invalida recusada -> HTTP 400
+[PASSA ] A08 | curso inexistente no admin -> HTTP 404
+[PASSA ] A08 | atividade de outro curso recusada -> HTTP 404
+======================================================================
+A02/A09 - DADOS E REGISTRO
+======================================================================
+[PASSA ] A02 | codigos de certificado sem repeticao -> 1 certificados
+[PASSA ] A02 | codigo longo e aleatorio -> exemplo _TGwtDlh... (22 chars)
+[PASSA ] A02 | senhas com hash forte -> scrypt
+[PASSA ] A09 | log nao guarda senha nem entrada do usuario -> 15 detalhes
+[PASSA ] A09 | eventos de falha e negacao registrados -> 11 eventos
+[PASSA ] A02 | consulta publica nao expoe matricula
+[PASSA ] A02 | consulta publica mascara o nome
+======================================================================
+A04 - FORCA BRUTA (por ultimo: o bloqueio vale para toda a origem)
+======================================================================
+[PASSA ] A04 | forca bruta: 25 logins errados sao limitados -> bloqueou na tentativa 6; 20 de 25 recusadas com 429 em 0.5s
+[PASSA ] A04 | senha correta tambem e barrada durante o bloqueio -> HTTP 429
+[PASSA ] A09 | bloqueio registrado no log -> 21 eventos login_bloqueado
+
+======================================================================
+TOTAL: 83 verificacoes | 80 passaram | 3 alertas
+  ALERTA [A02] cookie com Secure (esperado desligado em HTTP local) -> desligado: correto em HTTP, ligar em HTTPS
+  ALERTA [A05] cabecalho HSTS -> ausente
+  ALERTA [A05] cabecalho Server nao detalha versao -> Werkzeug/3.1.9 Python/3.13.18

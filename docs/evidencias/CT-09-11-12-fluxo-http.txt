@@ -1,0 +1,30 @@
+### CT-09, CT-11, CT-12 - fluxo por HTTP
+execucao UTC: 2026-11-18 22:07:34
+
+=== CT-09 emissao negada: mensagem ao usuario ===
+   mensagem exibida: Conclua todas as atividades do curso para emitir o certificado.
+[OK ] CT-09 emissao negada com mensagem clara — Conclua todas as atividades do curso para emitir o certificado.
+[OK ] CT-09 nenhum certificado no historico
+[OK ] CT-09 atividades incompletas nao emitem — Conclua todas as atividades do curso para emitir o certificado.
+
+=== CT-11 / CT-12 verificacao publica (GET, como o form faz) ===
+   codigo real no banco: CsiG9AlTmYpyfHhSI79BjA (titular Carla Mendes Lima, matricula 1001)
+[OK ] CT-11 codigo valido = Autentico — http=200
+[OK ] CT-11 mostra curso, carga e data
+[OK ] CT-12 matricula nao aparece — matricula=1001
+[OK ] CT-12 nome completo nao aparece
+   titular exibido: Carla M. L.
+[OK ] CT-12 nome mascarado presente
+[OK ] CT-12 sem 'cpf' na resposta
+[OK ] CT-12 sem 'e-mail' na resposta
+[OK ] CT-12 sem '@' na resposta
+[OK ] CT-12 sem 'senha' na resposta
+[OK ] CT-11 codigo inexistente = nao encontrado — http=404
+[OK ] CT-11 campo vazio validado — http=400
+[OK ] CT-12 entrada maliciosa: <script>alert(1)</script — http=400
+[OK ] CT-12 entrada maliciosa: ' OR 1=1 -- — http=400
+[OK ] CT-12 entrada maliciosa: ../../etc/passwd — http=400
+[OK ] CT-12 entrada maliciosa: %27%20OR%201=1 — http=400
+[OK ] CT-11 pagina inicial sem login nem erro — http=200
+
+=== RESUMO === falhas: 0

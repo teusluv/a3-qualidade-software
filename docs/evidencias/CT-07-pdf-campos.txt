@@ -1,0 +1,22 @@
+CT-07 - texto extraido do PDF emitido (paginas: 1 )
+
+Certificado de Conclusão
+ Hospital da Mulher · Educação Permanente
+Certificamos que
+Carla Mendes Lima
+ Matrícula 1001
+concluiu com aproveitamento o curso
+ Segurança do Paciente
+Carga horária: 4 horas · Concluído em 18/11/2026
+Coordenação de Educação Permanente
+ (assinatura ilustrativa · dados fictícios)
+Código de autenticidade: CsiG9AlTmYpyfHhSI79BjA
+ Verifique em /verificar informando o código acima.
+
+
+  campo presente? Carla Mendes Lima            -> SIM
+  campo presente? 1001                         -> SIM
+  campo presente? Segurança do Paciente        -> SIM
+  campo presente? Carga horária                -> SIM
+  campo presente? Concluído em                 -> SIM
+  campo presente? Código de autenticidade      -> SIM

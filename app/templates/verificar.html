@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}Verificar certificado{% endblock %}
+{% block conteudo %}
+<h1 class="h4 mb-3">Verificar autenticidade de certificado</h1>
+<form method="get" action="{{ url_for('certificados.verificar') }}" class="mb-4">
+  <label for="codigo" class="form-label">Código do certificado</label>
+  <div class="input-group">
+    <input type="text" class="form-control" id="codigo" name="codigo" maxlength="64" autocomplete="off">
+    <button type="submit" class="btn btn-primary">Verificar</button>
+  </div>
+</form>
+
+{% if estado == 'vazio' %}
+<div class="alert alert-warning" role="alert">Informe o código do certificado.</div>
+{% elif estado == 'formato_invalido' %}
+<div class="alert alert-warning" role="alert">Código em formato inválido. Use apenas letras, números, "-" e "_".</div>
+{% elif estado == 'nao_encontrado' %}
+<div class="alert alert-danger" role="alert">Certificado não encontrado.</div>
+{% elif estado == 'autentico' %}
+<div class="alert alert-success" role="alert"><strong>Autêntico</strong></div>
+<dl class="row">
+  <dt class="col-sm-4">Curso</dt><dd class="col-sm-8">{{ dados.curso }}</dd>
+  <dt class="col-sm-4">Carga horária</dt><dd class="col-sm-8">{{ dados.carga_horaria }} horas</dd>
+  <dt class="col-sm-4">Data de conclusão</dt><dd class="col-sm-8">{{ dados.concluido_em }}</dd>
+  <dt class="col-sm-4">Titular</dt><dd class="col-sm-8">{{ dados.nome_mascarado }}</dd>
+  <dt class="col-sm-4">Código</dt><dd class="col-sm-8">{{ dados.codigo }}</dd>
+</dl>
+{% endif %}
+{% endblock %}

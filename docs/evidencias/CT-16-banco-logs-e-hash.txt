@@ -1,0 +1,34 @@
+CT-16 - eventos registrados na tabela log (apos o fluxo manual completo)
+  atividade_concluida      5
+  login_sucesso            4
+  avaliacao_realizada      3
+  emissao_negada           2
+  curso_status_alterado    2
+  curso_iniciado           2
+  login_falha              1
+  inicio_bloqueado         1
+  certificado_emitido      1
+  acesso_negado            1
+
+CT-16 - amostra de registros (colunas: id, usuario_id, acao, detalhe, criado_em)
+   {'id': 22, 'usuario_id': 2, 'acao': 'emissao_negada', 'detalhe': 'curso_id=1', 'criado_em': '2026-11-18T19:07:34'}
+   {'id': 21, 'usuario_id': 2, 'acao': 'atividade_concluida', 'detalhe': 'curso=A', 'criado_em': '2026-11-18T19:07:34'}
+   {'id': 20, 'usuario_id': 2, 'acao': 'emissao_negada', 'detalhe': 'curso_id=1', 'criado_em': '2026-11-18T19:07:34'}
+   {'id': 19, 'usuario_id': 2, 'acao': 'curso_iniciado', 'detalhe': 'curso=A', 'criado_em': '2026-11-18T19:07:34'}
+   {'id': 18, 'usuario_id': 2, 'acao': 'login_sucesso', 'detalhe': None, 'criado_em': '2026-11-18T19:07:34'}
+   {'id': 17, 'usuario_id': 3, 'acao': 'curso_status_alterado', 'detalhe': 'curso=A ativo', 'criado_em': '2026-11-18T19:07:34'}
+   {'id': 16, 'usuario_id': 3, 'acao': 'curso_status_alterado', 'detalhe': 'curso=A arquivado', 'criado_em': '2026-11-18T19:07:34'}
+   {'id': 15, 'usuario_id': 3, 'acao': 'login_sucesso', 'detalhe': None, 'criado_em': '2026-11-18T19:07:34'}
+
+CT-16 - armazenamento de senha (tabela usuario)
+  1001: scrypt:32768:8:1$4tBzCpXWiarbqRAF$c541b7... (len=162)
+  1002: scrypt:32768:8:1$Bw6BsF0RRHlQbvuN$2c6799... (len=162)
+  9001: scrypt:32768:8:1$9EzInrOWYqP0UPMC$8d0b53... (len=162)
+
+Busca por senha em texto puro em todas as tabelas: nenhuma ocorrencia
+
+CT-06 (complemento) - tentativas gravadas (limite 3) e maior nota
+  matricula 1001 curso A: 3 tentativas (notas 60,80,70), maior = 80
+
+CT-10 (complemento) - codigos de certificado no banco
+  certificados: 1 | distintos: 1

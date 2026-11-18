@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titulo %}Avaliação{% endblock %}
+{% block conteudo %}
+<h1 class="h4">Avaliação · {{ curso['titulo'] }}</h1>
+<p class="text-body-secondary small">Tentativa {{ numero_tentativa }} de {{ max_tentativas }}. Questão sem resposta conta como erro.</p>
+<form method="post" action="{{ url_for('cursos.avaliacao_enviar', curso_id=curso['id']) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {% for q in questoes %}
+  <fieldset class="card card-body mb-3">
+    <legend class="h6">{{ q['ordem'] }}. {{ q['enunciado'] }}</legend>
+    {% for letra in ['a', 'b', 'c', 'd'] %}
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="q{{ q['id'] }}" id="q{{ q['id'] }}{{ letra }}" value="{{ letra }}">
+      <label class="form-check-label" for="q{{ q['id'] }}{{ letra }}">{{ q['opcao_' ~ letra] }}</label>
+    </div>
+    {% endfor %}
+  </fieldset>
+  {% endfor %}
+  <button type="submit" class="btn btn-primary">Enviar respostas</button>
+</form>
+{% endblock %}
