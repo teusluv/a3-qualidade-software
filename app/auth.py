@@ -21,9 +21,9 @@ from werkzeug.security import check_password_hash
 from wtforms import PasswordField, StringField
 
 from app.config import (
-    TAMANHO_MAXIMO_CAMPO_LOGIN,
     MAX_FALHAS_POR_MATRICULA,
     MAX_FALHAS_POR_ORIGEM,
+    TAMANHO_MAXIMO_CAMPO_LOGIN,
 )
 from app.db import get_db
 from app.services.logs import registrar
