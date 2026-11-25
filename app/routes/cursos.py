@@ -5,18 +5,20 @@ from datetime import date
 from flask import (
     Blueprint,
     abort,
+    current_app,
     flash,
     g,
     redirect,
     render_template,
     request,
+    send_from_directory,
     url_for,
 )
 
 from app.auth import login_required
 from app.config import MAX_TENTATIVAS
 from app.db import get_db
-from app.services import avaliacao, cursos
+from app.services import avaliacao, cursos, materiais
 from app.services.logs import registrar
 
 bp = Blueprint("cursos", __name__)
@@ -98,13 +100,40 @@ def historico():
 @login_required
 def detalhe(curso_id: int):
     resumo = _curso_visivel_ou_404(curso_id)
-    atividades = cursos.listar_atividades(get_db(), curso_id, resumo["inscricao_id"])
+    db = get_db()
+    atividades = cursos.listar_atividades(db, curso_id, resumo["inscricao_id"])
+    estado = _estado_do_curso(resumo)
     return render_template(
         "curso.html",
         curso=resumo,
         atividades=atividades,
-        estado=_estado_do_curso(resumo),
+        estado=estado,
         max_tentativas=MAX_TENTATIVAS,
+        materiais=materiais.listar_materiais(db, curso_id),
+    )
+
+
+@bp.get("/cursos/<int:curso_id>/materiais/<int:material_id>")
+@login_required
+def baixar_material(curso_id: int, material_id: int):
+    """Só quem iniciou o curso (ou o administrador) baixa o material."""
+    administrador = g.usuario["perfil"] == "administrador"
+    if administrador:
+        resumo = cursos.obter_resumo(get_db(), g.usuario["id"], curso_id)
+        if resumo is None:
+            abort(404)
+    else:
+        resumo = _curso_visivel_ou_404(curso_id)
+        if resumo["inscricao_id"] is None:
+            abort(403)
+    material = materiais.obter_material(get_db(), material_id, curso_id)
+    if material is None:
+        abort(404)
+    return send_from_directory(
+        current_app.config["UPLOAD_FOLDER"],
+        material["arquivo"],
+        as_attachment=True,
+        download_name=material["nome_original"],
     )
 
 

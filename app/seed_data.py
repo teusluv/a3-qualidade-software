@@ -100,6 +100,21 @@ QUESTOES = [
 ]
 
 
+def adicionar_modelo_ao_curso(db, curso_id: int) -> None:
+    """Dá ao curso as 4 atividades e as 10 questões-modelo (sem duplicar se já existirem)."""
+    for ordem, titulo in enumerate(ATIVIDADES, start=1):
+        db.execute(
+            "INSERT OR IGNORE INTO atividade (curso_id, ordem, titulo) VALUES (?, ?, ?)",
+            (curso_id, ordem, titulo),
+        )
+    for ordem, questao in enumerate(QUESTOES, start=1):
+        db.execute(
+            "INSERT OR IGNORE INTO questao (curso_id, ordem, enunciado, opcao_a, opcao_b, "
+            "opcao_c, opcao_d, correta) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (curso_id, ordem, *questao),
+        )
+
+
 def carregar_dados(db) -> None:
     """Insere usuários, cursos, atividades e questões de demonstração."""
     for matricula, nome, senha, perfil, setor in USUARIOS:
@@ -119,15 +134,5 @@ def carregar_dados(db) -> None:
         )
 
     for (curso_id,) in db.execute("SELECT id FROM curso").fetchall():
-        for ordem, titulo in enumerate(ATIVIDADES, start=1):
-            db.execute(
-                "INSERT OR IGNORE INTO atividade (curso_id, ordem, titulo) VALUES (?, ?, ?)",
-                (curso_id, ordem, titulo),
-            )
-        for ordem, questao in enumerate(QUESTOES, start=1):
-            db.execute(
-                "INSERT OR IGNORE INTO questao (curso_id, ordem, enunciado, opcao_a, opcao_b, "
-                "opcao_c, opcao_d, correta) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (curso_id, ordem, *questao),
-            )
+        adicionar_modelo_ao_curso(db, curso_id)
     db.commit()

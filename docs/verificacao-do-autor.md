@@ -17,11 +17,11 @@ mesma clareza, o que **não** foi verificado. Ele não substitui a execução da
 
 | Verificação | Resultado |
 |---|---|
-| Testes automatizados (`pytest`) | 174 testes passam (rodados várias vezes, sem oscilação) |
+| Testes automatizados (`pytest`) | 260 testes passam |
 | `ruff check .` e `bandit -r app` | Sem avisos |
 | Cobertura de ramos | 96% em `app/`; 100% em `app/services/avaliacao.py` |
-| Fluxo completo no navegador | 43 verificações passam (lista abaixo) |
-| Acessibilidade automática (axe-core) | 0 violações em 9 páginas, após as correções da seção 3 |
+| Fluxo completo no navegador | 43 verificações passam (lista abaixo), mais 21 do roteiro das telas novas (cadastro de curso, anexo e download de material, botões de voltar, login com erro) |
+| Acessibilidade automática (axe-core) | 0 violações em 10 páginas, após as correções da seção 3 |
 | Tela de 360 px | Sem rolagem horizontal em 7 páginas |
 | Log do servidor durante o fluxo | Nenhum erro |
 
@@ -44,6 +44,7 @@ curso; logout.
 4. **Erro 500** mostrava a página padrão; agora mostra uma mensagem amigável, sem detalhes internos.
 5. **Menu em 360 px** quebrava o layout; agora os links ficam em linha e quebram de forma limpa.
 6. **Contraste insuficiente** nos links do menu e nos botões de contorno (apontado pelo axe-core).
+7. **Botão "Voltar" cinza** com contraste insuficiente (axe-core) e **link `javascript:`** no "Voltar" da página de erro; trocado por um link real que usa a página anterior do próprio sistema.
 
 ## 4. O que NÃO foi verificado
 

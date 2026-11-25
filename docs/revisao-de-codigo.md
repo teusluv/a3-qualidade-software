@@ -2,6 +2,9 @@
 
 Revisão técnica feita sobre a versão entregue no pacote, **antes** da inspeção da equipe.
 
+> **Atualização de 24/11:** o código ganhou cadastro de curso, anexo de material, botões de voltar e
+> limpeza do login com erro. Os pontos da parte nova são R-20 e R-21.
+
 ## Como foi feita
 
 - Leitura de todos os arquivos de `app/` (rotas, serviços, banco, autenticação, templates).
@@ -24,7 +27,7 @@ qualquer item depois que a equipe decidir.
 
 | Item | O que era | O que foi feito |
 |---|---|---|
-| Dependência | `pypdf 5.9.0` (usado só nos testes) tinha vulnerabilidades conhecidas (`pip-audit`) | Atualizado para 7.1.0; 174 testes passam e o `pip-audit` não aponta mais nada |
+| Dependência | `pypdf 5.9.0` (usado só nos testes) tinha vulnerabilidades conhecidas (`pip-audit`) | Atualizado para 7.1.0; os testes passam e o `pip-audit` não aponta mais nada |
 | Dados de demonstração | Em 8 das 10 questões a resposta certa era a letra B: marcar tudo "B" dava 80% e aprovava | Respostas certas redistribuídas (a, b, c, d); marcar tudo "B" agora dá 20% |
 
 ## O que está bom
@@ -62,6 +65,8 @@ Severidade: **Média** (vale tratar antes de uso real) · **Baixa** (melhoria ou
 | R-17 | `app/services/certificado.py` | `ErroEmissao` não termina em `Error` (aviso N818 do ruff) | Info | Renomear, se a equipe adotar o padrão |
 | R-18 | `tests/integration/test_banco_e_seed.py` | Quatro imports dentro de funções (PLC0415) | Info | Mover para o topo do arquivo |
 | R-19 | `tests/integration/test_certificado.py` (CT-08) | A medição dos 5 s é feita no serviço, sem passar pelo HTTP; vale para o ambiente local (A-04) | Info | Complementar com medição pela interface no relatório |
+| R-20 | `app/services/materiais.py` | O upload confere extensão e assinatura (primeiros bytes) e limita a 20 MB, mas não examina o arquivo inteiro: um PDF ou Office pode trazer macros ou scripts. Não há varredura de vírus nem cota por curso, e os arquivos ficam no disco local | Baixa | Varredura antivírus, cota por curso e armazenamento externo |
+| R-21 | `app/services/cadastro.py` | Todo curso novo recebe as 10 questões-modelo e não há tela para editá-las: dois cursos novos têm exatamente a mesma avaliação | Info | Cadastro e edição de questões pela interface |
 
 ## Resumo
 
@@ -70,5 +75,5 @@ estático; R-14: a falha de CSRF mostra a página 400 padrão em inglês). Um su
 acesso negado com caminho longo, foi descartado depois de testar: só rotas de administração são
 gravadas e uma URL longa dá 404 sem entrar no log.
 
-19 achados abertos: 2 médios, 14 baixos, 3 informativos. Nenhum bloqueia a demonstração do
+21 achados abertos: 2 médios, 15 baixos, 4 informativos. Nenhum bloqueia a demonstração do
 fluxo principal. Os dois médios (R-01, R-02) são os que mais importariam fora do protótipo.

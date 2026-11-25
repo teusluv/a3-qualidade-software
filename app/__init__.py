@@ -2,15 +2,28 @@
 
 from pathlib import Path
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request, url_for
 from flask_wtf import CSRFProtect
 
 from app import auth, db
-from app.config import CABECALHOS_SEGURANCA, Config
+from app.config import Config
 from app.routes import admin, certificados, cursos
 from app.services.certificado import formatar_data
 
 csrf = CSRFProtect()
+
+
+def _url_voltar() -> str:
+    """Página anterior, só se for do próprio sistema; senão, o início."""
+    anterior = request.referrer
+    if anterior and anterior.startswith(request.host_url):
+        return anterior
+    return url_for("cursos.catalogo")
+
+
+def _pagina_de_erro(codigo: int, mensagem: str):
+    voltar = _url_voltar()
+    return render_template("erro.html", codigo=codigo, mensagem=mensagem, voltar_url=voltar), codigo
 
 
 def _preparar_banco(app: Flask) -> None:
@@ -33,6 +46,7 @@ def create_app(config_teste: dict | None = None) -> Flask:
     app.config.from_object(Config)
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
     app.config["DATABASE"] = str(Path(app.instance_path) / "portal.db")
+    app.config["UPLOAD_FOLDER"] = str(Path(app.instance_path) / "uploads")
 
     if config_teste:
         app.config.update(config_teste)
@@ -47,27 +61,50 @@ def create_app(config_teste: dict | None = None) -> Flask:
     app.register_blueprint(certificados.bp)
     app.register_blueprint(admin.bp)
 
-    @app.after_request
-    def aplicar_cabecalhos_de_seguranca(resposta):
-        """RNF-07 / defeitos D-03 e D-04: cabeçalhos em toda resposta, inclusive erros."""
-        for nome, valor in CABECALHOS_SEGURANCA.items():
-            resposta.headers[nome] = valor
-        # HSTS só faz sentido em HTTPS; em HTTP local o navegador ignora e pode atrapalhar.
-        if app.config.get("SESSION_COOKIE_SECURE"):
-            resposta.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-        return resposta
-
     @app.errorhandler(403)
     def acesso_negado(_erro):
-        return render_template("erro.html", codigo=403, mensagem="Acesso negado."), 403
+        return _pagina_de_erro(403, "Acesso negado.")
+
+    @app.errorhandler(413)
+    def arquivo_grande(_erro):
+        mensagem = "Arquivo muito grande. O limite é de 20 MB."
+        return _pagina_de_erro(413, mensagem)
 
     @app.errorhandler(500)
     def erro_interno(_erro):
         mensagem = "Ocorreu um erro inesperado. Tente novamente."
-        return render_template("erro.html", codigo=500, mensagem=mensagem), 500
+        return _pagina_de_erro(500, mensagem)
 
     @app.errorhandler(404)
     def nao_encontrado(_erro):
-        return render_template("erro.html", codigo=404, mensagem="Página não encontrada."), 404
+        return _pagina_de_erro(404, "Página não encontrada.")
+
+
+    @app.after_request
+    def adicionar_cabecalhos_seguranca(resposta):
+        resposta.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' https://cdn.jsdelivr.net; "
+            "style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
+            "img-src 'self' data:; "
+            "font-src 'self' https://cdn.jsdelivr.net; "
+            "frame-ancestors 'none'; "
+            "object-src 'none'; "
+            "base-uri 'self'"
+        )
+
+        resposta.headers["X-Frame-Options"] = "DENY"
+        resposta.headers["X-Content-Type-Options"] = "nosniff"
+        resposta.headers["Referrer-Policy"] = "no-referrer"
+        resposta.headers["Permissions-Policy"] = (
+            "camera=(), microphone=(), geolocation=()"
+        )
+
+        if app.config.get("SESSION_COOKIE_SECURE"):
+            resposta.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains"
+            )
+
+        return resposta
 
     return app

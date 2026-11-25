@@ -1,31 +1,115 @@
 {% extends "base.html" %}
 {% block titulo %}Administração{% endblock %}
 {% block conteudo %}
+<a class="btn btn-outline-secondary btn-sm mb-3" href="{{ url_for('cursos.catalogo') }}">&larr; Voltar aos cursos</a>
 <h1 class="h4">Área do administrador</h1>
 
-<h2 class="h5 mt-4">Situação dos cursos</h2>
-<div class="table-responsive">
-<table class="table table-sm align-middle">
-  <thead><tr><th>Código</th><th>Curso</th><th>Situação</th><th>Alterar</th></tr></thead>
-  <tbody>
-  {% for c in cursos %}
-    <tr>
-      <td>{{ c['codigo'] }}</td><td>{{ c['titulo'] }}</td><td>{{ c['status'] }}</td>
-      <td>
-        <form method="post" class="d-flex gap-2 m-0" action="{{ url_for('admin.alterar_status', curso_id=c['id']) }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <label class="visually-hidden" for="status{{ c['id'] }}">Situação do curso {{ c['codigo'] }}</label>
-          <select class="form-select form-select-sm" id="status{{ c['id'] }}" name="status">
-            {% for s in status_validos %}<option value="{{ s }}" {{ 'selected' if s == c['status'] }}>{{ s }}</option>{% endfor %}
-          </select>
-          <button type="submit" class="btn btn-outline-primary btn-sm">Salvar</button>
-        </form>
-      </td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+<h2 class="h5 mt-4">Cadastrar curso</h2>
+{% if erros %}
+<div class="alert alert-danger" role="alert">
+  <strong>Corrija antes de salvar:</strong>
+  <ul class="mb-0">{% for e in erros %}<li>{{ e }}</li>{% endfor %}</ul>
 </div>
+{% endif %}
+<form method="post" action="{{ url_for('admin.criar_curso') }}" class="card card-body mb-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row g-3">
+    <div class="col-sm-3">
+      <label class="form-label" for="codigo">Código</label>
+      <input class="form-control" id="codigo" name="codigo" maxlength="10" required value="{{ valores.get('codigo', '') }}">
+    </div>
+    <div class="col-sm-9">
+      <label class="form-label" for="titulo">Título</label>
+      <input class="form-control" id="titulo" name="titulo" maxlength="120" required value="{{ valores.get('titulo', '') }}">
+    </div>
+    <div class="col-sm-3">
+      <label class="form-label" for="carga_horaria">Carga horária (h)</label>
+      <input class="form-control" id="carga_horaria" name="carga_horaria" type="number" min="1" max="200" required value="{{ valores.get('carga_horaria', '') }}">
+    </div>
+    <div class="col-sm-3">
+      <label class="form-label" for="nota_minima">Nota mínima (%)</label>
+      <input class="form-control" id="nota_minima" name="nota_minima" type="number" min="{{ nota_minima_padrao }}" max="100" required value="{{ valores.get('nota_minima', nota_minima_padrao) }}">
+    </div>
+    <div class="col-sm-3">
+      <label class="form-label" for="setor">Setor</label>
+      <select class="form-select" id="setor" name="setor">
+        <option value="">Todos</option>
+        {% for s in setores %}<option value="{{ s }}" {{ 'selected' if valores.get('setor') == s }}>{{ s }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <label class="form-label" for="status_novo">Situação</label>
+      <select class="form-select" id="status_novo" name="status">
+        {% for s in status_novo %}<option value="{{ s }}" {{ 'selected' if valores.get('status') == s }}>{{ s }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <label class="form-label" for="data_inicio">Início do período</label>
+      <input class="form-control" id="data_inicio" name="data_inicio" type="date" required value="{{ valores.get('data_inicio', '') }}">
+    </div>
+    <div class="col-sm-3">
+      <label class="form-label" for="data_fim">Fim do período</label>
+      <input class="form-control" id="data_fim" name="data_fim" type="date" required value="{{ valores.get('data_fim', '') }}">
+    </div>
+    <div class="col-sm-6 d-flex align-items-end">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="obrigatorio" name="obrigatorio" {{ 'checked' if valores.get('obrigatorio') }}>
+        <label class="form-check-label" for="obrigatorio">Curso obrigatório</label>
+      </div>
+    </div>
+  </div>
+  <p class="small text-body-secondary mt-3 mb-2">O curso novo recebe 4 atividades e 10 questões-modelo. Depois de salvar, anexe o material de estudo.</p>
+  <div><button type="submit" class="btn btn-primary">Cadastrar curso</button></div>
+</form>
+
+<h2 class="h5 mt-4">Cursos e material</h2>
+{% for c in cursos %}
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+      <h3 class="h6 mb-0">{{ c['codigo'] }} · {{ c['titulo'] }}</h3>
+      <form method="post" class="d-flex gap-2 m-0" action="{{ url_for('admin.alterar_status', curso_id=c['id']) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="visually-hidden" for="status{{ c['id'] }}">Situação do curso {{ c['codigo'] }}</label>
+        <select class="form-select form-select-sm" id="status{{ c['id'] }}" name="status">
+          {% for s in status_validos %}<option value="{{ s }}" {{ 'selected' if s == c['status'] }}>{{ s }}</option>{% endfor %}
+        </select>
+        <button type="submit" class="btn btn-outline-primary btn-sm">Salvar</button>
+      </form>
+    </div>
+    <p class="small text-body-secondary mb-2">Situação atual: {{ c['status'] }}</p>
+
+    {% if materiais[c['id']] %}
+    <ul class="list-group mb-3">
+      {% for m in materiais[c['id']] %}
+      <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+        <span>{{ m['nome_original'] }} <span class="small text-body-secondary">({{ (m['tamanho'] / 1024)|round|int }} KB)</span></span>
+        <span class="d-flex gap-2">
+          <a class="btn btn-outline-primary btn-sm" href="{{ url_for('cursos.baixar_material', curso_id=c['id'], material_id=m['id']) }}">Baixar</a>
+          <form method="post" class="m-0" action="{{ url_for('admin.remover_material', material_id=m['id']) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline-danger btn-sm">Remover</button>
+          </form>
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="small text-body-secondary">Nenhum material anexado.</p>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="d-flex flex-wrap gap-2 align-items-end m-0"
+          action="{{ url_for('admin.enviar_material', curso_id=c['id']) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="flex-grow-1">
+        <label class="form-label small mb-1" for="arquivo{{ c['id'] }}">Anexar material ({{ extensoes }}; até 20 MB)</label>
+        <input class="form-control form-control-sm" type="file" id="arquivo{{ c['id'] }}" name="arquivo">
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm">Anexar</button>
+    </form>
+  </div>
+</div>
+{% endfor %}
 
 <h2 class="h5 mt-4">Últimos eventos registrados</h2>
 <div class="table-responsive">

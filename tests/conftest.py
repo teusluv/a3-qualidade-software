@@ -38,12 +38,21 @@ def caminho_banco(tmp_path, banco_modelo):
 
 @pytest.fixture
 def app(caminho_banco):
-    return create_app({**CONFIG_TESTE, "DATABASE": str(caminho_banco)})
+    pasta_uploads = str(caminho_banco.parent / "uploads")
+    config = {**CONFIG_TESTE, "DATABASE": str(caminho_banco), "UPLOAD_FOLDER": pasta_uploads}
+    return create_app(config)
 
 
 @pytest.fixture
 def app_com_csrf(caminho_banco):
-    return create_app({**CONFIG_TESTE, "DATABASE": str(caminho_banco), "WTF_CSRF_ENABLED": True})
+    return create_app(
+        {
+            **CONFIG_TESTE,
+            "DATABASE": str(caminho_banco),
+            "UPLOAD_FOLDER": str(caminho_banco.parent / "uploads"),
+            "WTF_CSRF_ENABLED": True,
+        }
+    )
 
 
 @pytest.fixture

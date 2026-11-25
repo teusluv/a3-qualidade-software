@@ -19,3 +19,12 @@ main { max-width: 860px; }
   --bs-btn-active-bg: #0a58ca;
   --bs-btn-active-border-color: #0a58ca;
 }
+
+.btn-outline-secondary {
+  --bs-btn-color: #495057;
+  --bs-btn-border-color: #495057;
+  --bs-btn-hover-bg: #495057;
+  --bs-btn-hover-border-color: #495057;
+  --bs-btn-active-bg: #495057;
+  --bs-btn-active-border-color: #495057;
+}

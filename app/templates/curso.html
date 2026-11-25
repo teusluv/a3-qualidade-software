@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block titulo %}{{ curso['titulo'] }}{% endblock %}
 {% block conteudo %}
+<a class="btn btn-outline-secondary btn-sm mb-3" href="{{ url_for('cursos.catalogo') }}">&larr; Voltar aos cursos</a>
 <h1 class="h4">{{ curso['titulo'] }}</h1>
 <p class="text-body-secondary small">
   Carga horária: {{ curso['carga_horaria'] }} h · Nota mínima: {{ curso['nota_minima'] }}% ·
@@ -18,6 +19,9 @@
   {% else %}
   <div class="alert alert-secondary" role="status">Este curso não aceita novos inícios (suspenso ou fora do período).</div>
   <button type="button" class="btn btn-primary" disabled>Iniciar curso</button>
+  {% endif %}
+  {% if materiais %}
+  <p class="small text-body-secondary mt-3">Este curso tem {{ materiais|length }} arquivo(s) de material. Inicie o curso para acessá-lo.</p>
   {% endif %}
 {% else %}
   <div class="progress mb-2" role="progressbar" aria-label="Progresso do curso"
@@ -43,6 +47,19 @@
     </li>
     {% endfor %}
   </ul>
+
+  {% if materiais %}
+  <h2 class="h5">Material do curso</h2>
+  <ul class="list-group mb-4">
+    {% for m in materiais %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <span>{{ m['nome_original'] }}</span>
+      <a class="btn btn-outline-primary btn-sm"
+         href="{{ url_for('cursos.baixar_material', curso_id=curso['id'], material_id=m['id']) }}">Baixar</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
 
   <h2 class="h5">Avaliação</h2>
   {% if estado.arquivado %}

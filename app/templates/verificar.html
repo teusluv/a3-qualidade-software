@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block titulo %}Verificar certificado{% endblock %}
 {% block conteudo %}
+{% if g.usuario %}<a class="btn btn-outline-secondary btn-sm mb-3" href="{{ url_for('cursos.catalogo') }}">&larr; Voltar aos cursos</a>{% else %}<a class="btn btn-outline-secondary btn-sm mb-3" href="{{ url_for('auth.login') }}">&larr; Voltar ao login</a>{% endif %}
 <h1 class="h4 mb-3">Verificar autenticidade de certificado</h1>
 <form method="get" action="{{ url_for('certificados.verificar') }}" class="mb-4">
   <label for="codigo" class="form-label">Código do certificado</label>

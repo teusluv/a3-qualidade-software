@@ -1,7 +1,5 @@
 # Portal de Treinamentos e Certificados — Protótipo A3
 
-Repositório: https://github.com/teusluv/a3-qualidade-software
-
 Protótipo da disciplina **Garantia da Qualidade de Software** (UNIFACS), projeto A3.
 Cenário: **Hospital da Mulher**, em Feira de Santana. Todos os dados são **fictícios**.
 
@@ -42,7 +40,7 @@ python -m venv .venv
 pip install -r requirements.txt
 
 python seed.py                   # cria o banco com dados fictícios (pode repetir)
-pytest                           # roda os 205 testes (leva alguns segundos)
+pytest                           # roda os 260 testes (leva alguns segundos)
 flask --app app run --debug      # abre em http://127.0.0.1:5000
 ```
 
@@ -85,8 +83,10 @@ Para sair do ambiente virtual: `deactivate`.
 5. Aprovado? Clique em **Emitir / baixar certificado**: o PDF traz nome, matrícula, curso,
    carga horária, data e código.
 6. Abra **Verificar certificado** (menu), cole o código: "Autêntico", com o nome mascarado.
-7. Entre como **9001 / admin123** e abra **Administração**: altere a situação de um curso e veja os
-   eventos registrados. Como colaborador, abrir `/admin/` dá "Acesso negado" (CA-02).
+7. Entre como **9001 / admin123** e abra **Administração**: cadastre um curso novo, **anexe um
+   material** (PDF, Word, PowerPoint, texto ou imagem, até 20 MB), altere a situação de um curso e
+   veja os eventos registrados. Depois entre como colaborador, inicie o curso novo e baixe o material.
+   Como colaborador, abrir `/admin/` dá "Acesso negado" (CA-02).
 
 ---
 
@@ -102,11 +102,13 @@ Para sair do ambiente virtual: `deactivate`.
 | T-04 Avaliação e resultado | `/cursos/<id>/avaliacao` e `/cursos/<id>/resultado/<id>` | Logado |
 | T-05 Verificação pública | `/verificar` | **Qualquer pessoa, sem login** |
 | Histórico | `/historico` | Logado |
-| Administração | `/admin/` | Só administrador |
+| Administração (cadastro de curso, anexo de material, situação dos cursos, eventos) | `/admin/` | Só administrador |
 
 Outros endereços: `POST /cursos/<id>/iniciar`, `POST /cursos/<id>/atividades/<id>/concluir`,
-`POST /cursos/<id>/certificado`, `GET /certificados/<id>/pdf`, `POST /logout` e
-`POST /admin/cursos/<id>/status`.
+`POST /cursos/<id>/certificado`, `GET /certificados/<id>/pdf`, `GET /cursos/<id>/materiais/<id>`
+(download do material), `POST /logout`, `POST /admin/cursos` (cadastrar curso),
+`POST /admin/cursos/<id>/status`, `POST /admin/cursos/<id>/materiais` (anexar) e
+`POST /admin/materiais/<id>/remover`.
 
 ### Regras de negócio adotadas
 
@@ -135,8 +137,8 @@ Estão em `app/config.py` ou no código, e podem mudar sem refazer a lógica.
 
 ### Fora do escopo do protótipo
 
-Gestor, relatórios e aviso de vencimento (RF-11, RF-12, caso CT-18); cadastro de cursos pela
-interface (os cursos vêm do `seed.py`); integração real com RH/PEP; teste de carga com 500
+Gestor, relatórios e aviso de vencimento (RF-11, RF-12, caso CT-18); edição das questões pela
+interface (todo curso novo recebe 4 atividades e 10 questões-modelo); integração real com RH/PEP; teste de carga com 500
 acessos (RNF-01) e medição de disponibilidade (RNF-03).
 
 ---
@@ -170,11 +172,13 @@ portal/
 │   ├── routes/              # o que cada endereço faz (recebe o pedido e responde)
 │   │   ├── cursos.py        #   catálogo, curso, atividades, avaliação, resultado, histórico
 │   │   ├── certificados.py  #   emissão, PDF e verificação pública
-│   │   └── admin.py         #   situação dos cursos e eventos registrados
+│   │   └── admin.py         #   cadastro de curso, anexo de material, situação dos cursos, eventos
 │   ├── services/            # regras de negócio (sem Flask: fáceis de testar)
 │   │   ├── avaliacao.py     #   nota, aprovação, tentativas (funções puras)
 │   │   ├── cursos.py        #   consultas de catálogo, inscrição, progresso, tentativas
 │   │   ├── certificado.py   #   emissão única, código, PDF, consulta pública
+│   │   ├── cadastro.py      #   validação e criação de curso novo
+│   │   ├── materiais.py     #   upload seguro do material (extensão, assinatura, nome gerado)
 │   │   └── logs.py          #   registro de eventos
 │   ├── templates/           # as páginas HTML
 │   └── static/              # CSS (e pastas para js/ e img/)
@@ -229,8 +233,7 @@ bandit -r app                                             # análise estática (
 |---|---|---|
 | `tests/unit/` | Nota, aprovação, tentativas, máscara do nome, regra de novo início | CT-05, CT-10, CT-17 |
 | `tests/integration/` | Certificado (PDF, único, simultâneo), 100 códigos, logs, histórico, banco | CT-07 a CT-10, CT-13, CT-16 |
-| `tests/system/` | Login, acesso, catálogo, avaliação, verificação pública, admin, CSRF | CT-01 a CT-06, CT-11, CT-12 |
-| `tests/system/test_seguranca.py` | Cabeçalhos de segurança e bloqueio de força bruta | D-02, D-03 |
+| `tests/system/` | Login, acesso, catálogo, avaliação, verificação pública, admin (cadastro e anexo), navegação, CSRF | CT-01 a CT-06, CT-11, CT-12 |
 
 **Meta de cobertura:** 80% de cobertura de ramos em `app/services/avaliacao.py`. Hoje está em
 100%. `--cov-branch` mede ramos, que usamos como indicador da cobertura de decisão do plano; ele
@@ -246,8 +249,8 @@ navegadores). O CT-18 está fora do escopo.
 ### Integração contínua
 
 O arquivo `.github/workflows/ci.yml` roda a cada push na `main` e a cada pull request: instala
-as dependências, roda `ruff`, `bandit`, `pytest` com cobertura e confere a meta de 80%. A primeira execução passou
-em 18/11/2026 (CI #1, commit 8d1dd3c, 49 s, Python 3.12 no ubuntu-latest).
+as dependências, roda `ruff`, `bandit`, `pytest` com cobertura e confere a meta de 80%. Só
+funciona depois de o projeto estar no GitHub; confirmem a primeira execução na aba **Actions**.
 
 ---
 
@@ -261,7 +264,7 @@ Cada documento existe em Markdown (`.md`), em Word (`docs/word/`) e em PDF (`doc
 | `execucao-testes.md` | **Registro** de cada execução: esperado, obtido, status, evidência | **Equipe** |
 | `defeitos.md` | **Registro** de defeitos reais, com evidência e classificação | **Equipe** |
 | `inspecao.md` | Checklist da inspeção, tabela de achados, análise estática, limitações conhecidas | **Equipe** |
-| `revisao-de-codigo.md` | 19 pontos de melhoria apontados numa revisão técnica (abertos, para a equipe avaliar) | Pronto; a equipe decide o que vira defeito |
+| `revisao-de-codigo.md` | 21 pontos de melhoria apontados numa revisão técnica (abertos, para a equipe avaliar) | Pronto; a equipe decide o que vira defeito |
 | `avaliacao-criterios.md` | Avaliação de CA-01 a CA-17 e dos 7 atributos de qualidade (entrega final) | **Equipe** |
 | `divisao-de-tarefas.md` | Quem faz o quê e o cronograma até 25/11 e 02/12 | Pronto; ajustem os nomes |
 | `ci-cd.md` | Proposta de CI/CD para o relatório | Pronto; a equipe revisa |
@@ -304,18 +307,18 @@ Resumo do caminho (detalhes e responsáveis em `docs/divisao-de-tarefas.md`):
 | Página sem estilo (tudo "cru") | Sem internet: o Bootstrap vem de CDN | Conecte à internet (ou baixe o Bootstrap para `app/static/`) |
 | `Address already in use` | A porta 5000 está ocupada | `flask --app app run --port 5001` |
 | `pytest` não encontrado | Ambiente virtual desativado | Ative o `.venv` e rode `pip install -r requirements.txt` |
+| Anexo recusado: "Tipo de arquivo não permitido" ou "conteúdo não corresponde" | Só entram pdf, docx, pptx, txt, png, jpg e jpeg, e o conteúdo precisa ser do tipo da extensão | Use um arquivo real desses tipos, com até 20 MB |
 | Quer recomeçar do zero | Dados bagunçados na demonstração | Apague `instance/` e rode `python seed.py` |
 
 ---
 
 ## 9. Limitações conhecidas
 
-- O bloqueio de tentativas de login e os cabeçalhos de segurança **foram implementados** em
-  18/11/2026, após a bateria OWASP (ver `docs/relatorio-seguranca.md`, defeitos D-02 e D-03).
-  O contador de falhas fica em memória: vale por processo e zera ao reiniciar.
-- O cabeçalho `Server` ainda revela a versão, porque quem o emite é o servidor de
-  desenvolvimento; a correção é de implantação (D-04).
-- As "atividades" apenas são marcadas como concluídas; não há vídeo nem leitura de verdade.
+- Sem bloqueio de tentativas de login e sem cabeçalhos de segurança (ver `docs/revisao-de-codigo.md`).
+- As "atividades" apenas são marcadas como concluídas; o material de estudo pode ser anexado, mas o
+  sistema não confere se foi lido.
+- Os arquivos anexados ficam na pasta local `instance/uploads`; o upload confere extensão e assinatura
+  do arquivo, mas não faz varredura de vírus.
 - O PDF não tem QR code; a assinatura é ilustrativa.
 - O cookie `Secure` fica desligado no uso local em HTTP (ligue com `SESSION_COOKIE_SECURE=1` em HTTPS).
 - O SQLite serve ao protótipo, mas não valida 500 acessos simultâneos nem a disponibilidade de 99,5%.

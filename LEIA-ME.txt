@@ -1,0 +1,5 @@
+ATUALIZAÇÃO DOS DOCUMENTOS (24/11/2026) — OPCIONAL
+Extraia dentro da pasta 'portal' substituindo os arquivos. Contém README, os documentos em .md/Word/PDF,
+a apresentação e as capturas de tela. Só vale se você quiser os textos atualizados (260 testes, novas telas,
+revisão do código com 21 pontos, plano de 24/11). Se já preencheu algum documento (execução, defeitos, inspeção),
+NÃO substitua esses arquivos: copie só o que quiser.

@@ -89,3 +89,14 @@ CREATE TABLE IF NOT EXISTS log (
     detalhe     TEXT,
     criado_em   TEXT NOT NULL
 );
+
+-- Arquivos anexados pelo administrador a um curso (material de estudo).
+CREATE TABLE IF NOT EXISTS material (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    curso_id       INTEGER NOT NULL REFERENCES curso(id),
+    nome_original  TEXT NOT NULL,
+    arquivo        TEXT NOT NULL UNIQUE,      -- nome gerado no disco (nunca o nome enviado)
+    tamanho        INTEGER NOT NULL,
+    enviado_por    INTEGER REFERENCES usuario(id),
+    enviado_em     TEXT NOT NULL
+);

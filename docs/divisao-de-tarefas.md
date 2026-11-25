@@ -1,5 +1,18 @@
 # Divisão de tarefas e cronograma
 
+## Atualização de 24/11 (véspera da entrega 1): prioridades de hoje
+
+1. **Hoje à noite:** todos rodam o projeto (`README`, seção 2) e conferem que os testes passam.
+2. **Hoje:** executar os casos de prioridade alta e registrar resultado e evidência em
+   `docs/execucao-testes.md` (pelo menos CT-01, 02, 05, 06, 07, 09, 11, 12, 16, 17).
+3. **Hoje:** rodar `ruff` e `bandit`, registrar a saída em `docs/inspecao.md` e `docs/evidencias/`.
+4. **Hoje:** registrar em `docs/defeitos.md` o que **vocês encontraram** (com print), por exemplo: falta
+   de botão de voltar, falta de onde anexar o material, campos do login não limpos após erro (já
+   corrigidos nesta versão: registrem o defeito, a correção e a regressão).
+5. **Manhã de 25/11:** conferir tudo, montar o documento e entregar.
+
+O cronograma abaixo foi escrito em 17/11 e fica como referência para a entrega final.
+
 Sugestão de divisão para os cinco integrantes. **Troquem à vontade**: o importante é que
 cada tarefa tenha um dono e que as revisões sejam cruzadas (ninguém inspeciona só o que fez).
 

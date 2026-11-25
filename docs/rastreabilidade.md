@@ -35,6 +35,13 @@ A coluna "Teste automatizado" aponta onde o caso está implementado no código. 
 | SQL injection e XSS | `tests/system/test_login.py`, `tests/system/test_verificacao_publica.py` |
 | Controle de acesso por perfil e por dono | `tests/system/test_acesso.py`, `tests/integration/test_certificado.py` |
 | Isolamento do banco de teste | `tests/integration/test_banco_e_seed.py` |
-| Bloqueio de força bruta no login (D-02) | `tests/system/test_seguranca.py::test_d02_*` |
-| Cabeçalhos de segurança (D-03) | `tests/system/test_seguranca.py::test_d03_*` |
 | Análise estática | `ruff check .` e `bandit -r app` |
+
+## Administração: cadastro de curso e anexo de material (RF-09 ampliado)
+
+| Função | Onde está (automatizado) |
+|---|---|
+| Validação do cadastro (nota mínima 70 a 100, datas, código, setor) | `tests/unit/test_cadastro.py` |
+| Regras do upload (extensão e assinatura do arquivo) | `tests/unit/test_materiais.py` |
+| Cadastro de curso, anexo, download só após iniciar, remoção, limite de 20 MB, perfil | `tests/system/test_cadastro_e_materiais.py` |
+| Botões de voltar e login com erro limpando os campos | `tests/system/test_navegacao_e_login.py` |
