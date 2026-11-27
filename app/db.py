@@ -28,3 +28,17 @@ def init_db() -> None:
     db = get_db()
     db.executescript(SCHEMA.read_text(encoding="utf-8"))
     db.commit()
+
+
+def migrar_banco(conexao: sqlite3.Connection) -> None:
+    """Acrescenta colunas novas a bancos criados por versões anteriores (não apaga nada).
+
+    - `usuario.ativo`: contas existentes continuam ativas.
+    """
+    colunas = [linha["name"] for linha in conexao.execute("PRAGMA table_info(usuario)")]
+    if "ativo" not in colunas:
+        conexao.execute(
+            "ALTER TABLE usuario "
+            "ADD COLUMN ativo INTEGER NOT NULL DEFAULT 1 CHECK (ativo IN (0, 1))"
+        )
+        conexao.commit()

@@ -1,0 +1,18 @@
+{# Navegação de páginas. Uso: {{ paginacao('endpoint', pagina, paginas, tabela='x') }} #}
+{% macro paginacao(endpoint, pagina, paginas, rotulo="Páginas") %}
+{% if paginas > 1 %}
+<nav aria-label="{{ rotulo }}" class="d-flex align-items-center gap-2 mb-3">
+  {% if pagina > 1 %}
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for(endpoint, pagina=pagina - 1, **kwargs) }}">&larr; Anterior</a>
+  {% else %}
+  <span class="btn btn-outline-secondary btn-sm disabled" aria-disabled="true">&larr; Anterior</span>
+  {% endif %}
+  <span class="small">Página {{ pagina }} de {{ paginas }}</span>
+  {% if pagina < paginas %}
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for(endpoint, pagina=pagina + 1, **kwargs) }}">Próxima &rarr;</a>
+  {% else %}
+  <span class="btn btn-outline-secondary btn-sm disabled" aria-disabled="true">Próxima &rarr;</span>
+  {% endif %}
+</nav>
+{% endif %}
+{% endmacro %}

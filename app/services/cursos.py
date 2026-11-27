@@ -138,3 +138,15 @@ def obter_tentativa(db, tentativa_id: int, usuario_id: int, curso_id: int):
         "WHERE t.id = ? AND i.usuario_id = ? AND i.curso_id = ?",
         (tentativa_id, usuario_id, curso_id),
     ).fetchone()
+
+
+def listar_concluintes(db, curso_id: int):
+    """Quem concluiu o curso (tem certificado): para o administrador consultar o histórico."""
+    return db.execute(
+        "SELECT u.nome, u.matricula, u.setor, ce.concluido_em, ce.codigo, "
+        "       (SELECT MAX(t.nota) FROM tentativa t JOIN inscricao i ON i.id = t.inscricao_id "
+        "         WHERE i.usuario_id = ce.usuario_id AND i.curso_id = ce.curso_id) AS melhor_nota "
+        "FROM certificado ce JOIN usuario u ON u.id = ce.usuario_id "
+        "WHERE ce.curso_id = ? ORDER BY ce.concluido_em DESC",
+        (curso_id,),
+    ).fetchall()

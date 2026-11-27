@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS usuario (
     nome        TEXT NOT NULL,
     senha_hash  TEXT NOT NULL,
     perfil      TEXT NOT NULL CHECK (perfil IN ('colaborador', 'administrador')),
-    setor       TEXT NOT NULL
+    setor       TEXT NOT NULL,
+    ativo       INTEGER NOT NULL DEFAULT 1 CHECK (ativo IN (0, 1))  -- 0 = conta desativada
 );
 
 CREATE TABLE IF NOT EXISTS curso (
@@ -99,4 +100,13 @@ CREATE TABLE IF NOT EXISTS material (
     tamanho        INTEGER NOT NULL,
     enviado_por    INTEGER REFERENCES usuario(id),
     enviado_em     TEXT NOT NULL
+);
+
+-- Links (por exemplo, vídeos) que o administrador indica em um curso. O sistema só guarda o endereço.
+CREATE TABLE IF NOT EXISTS link_curso (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    curso_id   INTEGER NOT NULL REFERENCES curso(id),
+    titulo     TEXT NOT NULL,
+    url        TEXT NOT NULL,
+    criado_em  TEXT NOT NULL
 );

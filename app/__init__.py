@@ -7,7 +7,7 @@ from flask_wtf import CSRFProtect
 
 from app import auth, db
 from app.config import Config
-from app.routes import admin, certificados, cursos
+from app.routes import admin, certificados, conta, cursos, gestao, usuarios
 from app.services.certificado import formatar_data
 
 csrf = CSRFProtect()
@@ -31,6 +31,7 @@ def _preparar_banco(app: Flask) -> None:
     with app.app_context():
         db.init_db()
         conexao = db.get_db()
+        db.migrar_banco(conexao)
         colunas = [linha["name"] for linha in conexao.execute("PRAGMA table_info(certificado)")]
         if "concluido_em" not in colunas:
             raise RuntimeError(
@@ -59,6 +60,9 @@ def create_app(config_teste: dict | None = None) -> Flask:
     app.register_blueprint(auth.bp)
     app.register_blueprint(cursos.bp)
     app.register_blueprint(certificados.bp)
+    app.register_blueprint(gestao.bp)
+    app.register_blueprint(usuarios.bp)
+    app.register_blueprint(conta.bp)
     app.register_blueprint(admin.bp)
 
     @app.errorhandler(403)
@@ -79,7 +83,6 @@ def create_app(config_teste: dict | None = None) -> Flask:
     def nao_encontrado(_erro):
         return _pagina_de_erro(404, "Página não encontrada.")
 
-
     @app.after_request
     def adicionar_cabecalhos_seguranca(resposta):
         resposta.headers["Content-Security-Policy"] = (
@@ -92,7 +95,6 @@ def create_app(config_teste: dict | None = None) -> Flask:
             "object-src 'none'; "
             "base-uri 'self'"
         )
-
         resposta.headers["X-Frame-Options"] = "DENY"
         resposta.headers["X-Content-Type-Options"] = "nosniff"
         resposta.headers["Referrer-Policy"] = "no-referrer"

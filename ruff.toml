@@ -5,3 +5,7 @@ target-version = "py311"
 # E/W: estilo (PEP 8) · F: erros · I: ordem dos imports · B: bugs comuns
 # UP: sintaxe moderna · SIM: simplificações
 select = ["E", "W", "F", "I", "B", "UP", "SIM"]
+
+[lint.per-file-ignores]
+# Nos testes, linhas longas (dados e consultas SQL) são aceitas para manter a leitura.
+"tests/**" = ["E501"]

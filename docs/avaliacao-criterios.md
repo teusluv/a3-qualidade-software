@@ -36,9 +36,9 @@ executar o caso correspondente (`docs/execucao-testes.md`).
 |---|---|---|---|---|
 | Funcionalidade | Nota, aprovação, certificado e verificação implementados e testados; cobertura de ramos de 100% em `services/avaliacao.py` | Execução independente pela equipe | | |
 | Confiabilidade | Histórico preservado ao arquivar; emissão única (transação + `UNIQUE`); limite de tentativas atômico | Disponibilidade de 99,5% (SQLite local, sem medição) | | |
-| Usabilidade | Interface responsiva (Bootstrap); 360 px sem rolagem lateral; 0 violações no axe-core em 10 páginas, botões de voltar nas telas (ambiente do autor) | Lighthouse; fluxo inteiro só com teclado; teste com usuários | | |
+| Usabilidade | Interface responsiva (Bootstrap); 360 px sem rolagem lateral; 0 violações no axe-core em 18 páginas, botões de voltar nas telas (ambiente do autor) | Lighthouse; fluxo inteiro só com teclado; teste com usuários | | |
 | Eficiência | Teste local de 20 emissões (CT-08); login carregou em cerca de 0,1 s no ambiente do autor | Lighthouse (CT-14); carga de 500 acessos (RNF-01, fora do escopo) | | |
-| Manutenibilidade | Regras em `config.py`; `services/` sem Flask; ruff e bandit sem avisos; 260 testes | Métricas formais; os pontos de melhoria estão em `docs/revisao-de-codigo.md` | | |
+| Manutenibilidade | Regras em `config.py`; `services/` sem Flask; ruff e bandit sem avisos; 440 testes | Métricas formais; os pontos de melhoria estão em `docs/revisao-de-codigo.md` | | |
 | Portabilidade | Verificado no Chromium, Python 3.12, Linux | Firefox, Edge, Windows, Python 3.11, celular real | | |
 | Segurança | Hash de senha, CSRF, sessão com HttpOnly/SameSite/expiração, perfil e dono verificados no servidor, SQL parametrizado, escape automático, logs sem senha, `pip-audit` sem vulnerabilidades | Bloqueio de força bruta, cabeçalhos de segurança e teste de invasão (ver revisão do código) | | |
 

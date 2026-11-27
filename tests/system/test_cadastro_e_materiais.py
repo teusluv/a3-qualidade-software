@@ -225,9 +225,11 @@ def test_admin_remove_material_e_o_arquivo_some_do_disco(admin, app, id_curso, c
     assert "material_removido" in [r["acao"] for r in consulta("SELECT acao FROM log")]
 
 
-def test_painel_admin_mostra_formulario_de_cadastro_e_de_anexo(admin):
-    pagina = admin.get("/admin/").get_data(as_text=True)
+def test_painel_admin_mostra_cadastro_e_a_pagina_do_curso_mostra_o_anexo(admin, id_curso):
+    painel = admin.get("/admin/").get_data(as_text=True)
+    pagina_do_curso = admin.get(f"/admin/cursos/{id_curso('A')}").get_data(as_text=True)
 
-    assert "Cadastrar curso" in pagina
-    assert "Anexar material" in pagina
-    assert 'enctype="multipart/form-data"' in pagina
+    assert "Cadastrar curso" in painel
+    assert "Gerenciar" in painel
+    assert "Anexar material" in pagina_do_curso
+    assert 'enctype="multipart/form-data"' in pagina_do_curso

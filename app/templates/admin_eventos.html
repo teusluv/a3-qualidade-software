@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "_paginacao.html" import paginacao with context %}
+{% block titulo %}Eventos{% endblock %}
+{% block conteudo %}
+<a class="btn btn-outline-secondary btn-sm mb-3" href="{{ url_for('admin.painel') }}">&larr; Voltar à administração</a>
+<h1 class="h4">Eventos registrados</h1>
+<p class="small text-body-secondary">{{ total }} evento(s), do mais novo para o mais antigo, 20 por página. Nada é apagado: o histórico serve de auditoria (CA-16).</p>
+{{ paginacao('gestao.eventos', pagina, paginas, rotulo='Páginas, início da lista') }}
+<div class="table-responsive">
+<table class="table table-sm">
+  <thead><tr><th>Data/hora</th><th>Matrícula</th><th>Ação</th><th>Detalhe</th></tr></thead>
+  <tbody>
+  {% for l in eventos %}
+    <tr><td>{{ l['criado_em'] }}</td><td>{{ l['matricula'] or '-' }}</td><td>{{ l['acao'] }}</td><td>{{ l['detalhe'] or '' }}</td></tr>
+  {% else %}
+    <tr><td colspan="4" class="text-body-secondary">Nenhum evento.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{{ paginacao('gestao.eventos', pagina, paginas, rotulo='Páginas, fim da lista') }}
+{% endblock %}
