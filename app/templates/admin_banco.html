@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block titulo %}Banco de dados{% endblock %}
+{% block conteudo %}
+<a class="btn btn-outline-secondary btn-sm mb-3" href="{{ url_for('admin.painel') }}">&larr; Voltar à administração</a>
+<h1 class="h4">Banco de dados (somente leitura)</h1>
+<p>O banco é um arquivo <strong>SQLite</strong> guardado neste computador, em:</p>
+<p><code>{{ arquivo }}</code></p>
+<p class="small text-body-secondary">Os arquivos anexados ficam na pasta <code>instance/uploads</code>, ao lado do banco. Aqui você só consulta: nada pode ser alterado por esta tela, e as senhas (hash) ficam ocultas.</p>
+<div class="table-responsive">
+<table class="table table-sm align-middle">
+  <thead><tr><th>Tabela</th><th>Registros</th><th>Colunas</th></tr></thead>
+  <tbody>
+  {% for t in tabelas %}
+    <tr>
+      <td><a href="{{ url_for('gestao.tabela_do_banco', tabela=t.nome) }}">{{ t.nome }}</a></td>
+      <td>{{ t.total }}</td>
+      <td class="small">{% for c in t.colunas %}{{ c.nome }}{% if c.chave %} (chave){% endif %}{{ ', ' if not loop.last }}{% endfor %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

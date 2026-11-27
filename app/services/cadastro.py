@@ -7,6 +7,7 @@
 import re
 from collections.abc import Mapping
 from datetime import date
+from pathlib import Path
 
 from app.config import NOTA_MINIMA_PADRAO
 from app.seed_data import adicionar_modelo_ao_curso
@@ -30,7 +31,9 @@ def _data(valor) -> date | None:
         return None
 
 
-def validar_curso(dados: Mapping, setores_validos: set[str]) -> tuple[dict, list[str]]:
+def validar_curso(
+    dados: Mapping, setores_validos: set[str], status_permitidos: tuple[str, ...] = STATUS_NOVO
+) -> tuple[dict, list[str]]:
     """Devolve (dados limpos, lista de erros em português). Sem erros = pode gravar."""
     erros: list[str] = []
 
@@ -55,8 +58,8 @@ def validar_curso(dados: Mapping, setores_validos: set[str]) -> tuple[dict, list
         erros.append("Setor: escolha um setor da lista ou deixe em 'Todos'.")
 
     status = (dados.get("status") or "").strip()
-    if status not in STATUS_NOVO:
-        erros.append("Situação: escolha ativo ou suspenso.")
+    if status not in status_permitidos:
+        erros.append(f"Situação: escolha {' ou '.join(status_permitidos)}.")
 
     inicio, fim = _data(dados.get("data_inicio")), _data(dados.get("data_fim"))
     if inicio is None or fim is None:
@@ -78,8 +81,18 @@ def validar_curso(dados: Mapping, setores_validos: set[str]) -> tuple[dict, list
     return limpo, erros
 
 
-def codigo_existe(db, codigo: str) -> bool:
-    return db.execute("SELECT 1 FROM curso WHERE codigo = ?", (codigo,)).fetchone() is not None
+def codigo_existe(db, codigo: str, ignorar_id: int | None = None) -> bool:
+    """Já existe outro curso com este código? (`ignorar_id` é o próprio curso, na edição)."""
+    return (
+        db.execute(
+            "SELECT 1 FROM curso WHERE codigo = ? AND id IS NOT ?", (codigo, ignorar_id)
+        ).fetchone()
+        is not None
+    )
+
+
+def listar_codigos(db) -> list[str]:
+    return [linha["codigo"] for linha in db.execute("SELECT codigo FROM curso ORDER BY codigo")]
 
 
 def criar_curso(db, curso: dict) -> int:
@@ -92,3 +105,43 @@ def criar_curso(db, curso: dict) -> int:
     )
     adicionar_modelo_ao_curso(db, cursor.lastrowid)
     return cursor.lastrowid
+
+
+def atualizar_curso(db, curso_id: int, curso: dict) -> None:
+    """Grava as alterações dos dados do curso. Quem chama faz o commit."""
+    db.execute(
+        "UPDATE curso SET codigo = :codigo, titulo = :titulo, carga_horaria = :carga_horaria, "
+        "nota_minima = :nota_minima, obrigatorio = :obrigatorio, setor = :setor, "
+        "status = :status, data_inicio = :data_inicio, data_fim = :data_fim WHERE id = :id",
+        {**curso, "id": curso_id},
+    )
+
+
+class CursoComHistoricoError(Exception):
+    """O curso tem inscrições ou certificados e não pode ser excluído (RN-05)."""
+
+
+def curso_tem_historico(db, curso_id: int) -> bool:
+    inscricoes = db.execute("SELECT COUNT(*) FROM inscricao WHERE curso_id = ?", (curso_id,))
+    certificados = db.execute("SELECT COUNT(*) FROM certificado WHERE curso_id = ?", (curso_id,))
+    return (inscricoes.fetchone()[0] + certificados.fetchone()[0]) > 0
+
+
+def excluir_curso(db, pasta_uploads: str, curso_id: int) -> None:
+    """Exclui o curso e o que é só dele; recusa se houver histórico. Quem chama faz o commit."""
+    if curso_tem_historico(db, curso_id):
+        raise CursoComHistoricoError(
+            "Este curso tem histórico de colaboradores e não pode ser excluído. "
+            "Arquive-o: ele deixa de aparecer no catálogo e o histórico é preservado."
+        )
+    arquivos = [
+        linha["arquivo"]
+        for linha in db.execute("SELECT arquivo FROM material WHERE curso_id = ?", (curso_id,))
+    ]
+    db.execute("DELETE FROM material WHERE curso_id = ?", (curso_id,))
+    db.execute("DELETE FROM link_curso WHERE curso_id = ?", (curso_id,))
+    db.execute("DELETE FROM questao WHERE curso_id = ?", (curso_id,))
+    db.execute("DELETE FROM atividade WHERE curso_id = ?", (curso_id,))
+    db.execute("DELETE FROM curso WHERE id = ?", (curso_id,))
+    for arquivo in arquivos:  # só apaga do disco depois de o banco aceitar tudo
+        (Path(pasta_uploads) / arquivo).unlink(missing_ok=True)

@@ -50,31 +50,9 @@ quando confirmado.
 
 Cole aqui a saída real de `ruff check .` e `bandit -r app` e classifique cada aviso.
 
-**Saída real da execução de 18/11/2026 (Linux, Python 3.13.18):**
-
-```
-$ ruff check .
-All checks passed!                                  (código de saída 0)
-
-$ bandit -r app
-Test results:
-        No issues identified.
-Code scanned:
-        Total lines of code: 960
-Total issues (by severity):
-        Undefined: 0   Low: 0   Medium: 0   High: 0
-```
-
 | Ferramenta | Aviso | Local | Classificação (defeito, falso positivo, aceito) | Justificativa |
 |---|---|---|---|---|
-| ruff 0.17.5 | nenhum aviso | — | — | Nada a classificar: 0 ocorrências nas verificações configuradas em `ruff.toml` |
-| bandit 1.9.4 | nenhum aviso | — | — | Nada a classificar: 0 ocorrências de severidade baixa, média ou alta em 960 linhas de `app/` |
-
-Evidências: `evidencias/estatica-ruff.txt` e `evidencias/estatica-bandit.txt`.
-
-> A ausência de avisos **não** encerra a inspeção: ruff e bandit não avaliam regra de negócio.
-> Os 19 pontos de `revisao-de-codigo.md` e o checklist da seção 1 continuam a cargo dos
-> inspetores, que precisam ler o código.
+| | | | | |
 
 ## 4. Limitações conhecidas (declaradas pelo autor do código)
 

@@ -45,3 +45,25 @@ A coluna "Teste automatizado" aponta onde o caso está implementado no código. 
 | Regras do upload (extensão e assinatura do arquivo) | `tests/unit/test_materiais.py` |
 | Cadastro de curso, anexo, download só após iniciar, remoção, limite de 20 MB, perfil | `tests/system/test_cadastro_e_materiais.py` |
 | Botões de voltar e login com erro limpando os campos | `tests/system/test_navegacao_e_login.py` |
+
+## Gestão de curso, eventos e banco (25/11)
+
+| Função | Onde está (automatizado) |
+|---|---|
+| Validação de links, perguntas, atividades e paginação | `tests/unit/test_conteudo.py` |
+| Editar dados e código (repetido, nota < 70), excluir (com confirmação e bloqueio por histórico), atividades, perguntas e respostas, links, concluintes | `tests/system/test_gestao_curso.py` |
+| Eventos em páginas de 20 (nada apagado) e banco somente leitura (hash oculto, nome de tabela malicioso, perfil) | `tests/system/test_eventos_e_banco.py` |
+
+## Contas de usuário (25/11)
+
+| Função | Onde está (automatizado) |
+|---|---|
+| Validação de matrícula (só números), nome, setor, perfil e senha | `tests/unit/test_usuarios.py` |
+| Criar conta (colaborador e administrador) e a pessoa entrar, matrícula repetida, senha só em hash e fora do log, setor novo, redefinir senha, acesso só do administrador | `tests/system/test_usuarios_admin.py` |
+
+## Situação das contas e troca de senha (25/11)
+
+| Função | Onde está (automatizado) |
+|---|---|
+| Desativar e reativar (sessão aberta cai, mensagem genérica, histórico e certificado preservados, último administrador protegido), excluir só sem histórico, troca da própria senha, migração de banco antigo | `tests/system/test_contas_situacao_e_senha.py` |
+| Regras da troca de senha (senha atual, política, diferente da atual, confirmação) | `tests/unit/test_usuarios.py` |

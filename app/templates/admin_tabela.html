@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "_paginacao.html" import paginacao with context %}
+{% block titulo %}Tabela {{ tabela }}{% endblock %}
+{% block conteudo %}
+<a class="btn btn-outline-secondary btn-sm mb-3" href="{{ url_for('gestao.banco_de_dados') }}">&larr; Voltar às tabelas</a>
+<h1 class="h4">Tabela <code>{{ tabela }}</code></h1>
+<p class="small text-body-secondary">{{ total }} registro(s), 20 por página. Somente leitura.</p>
+{{ paginacao('gestao.tabela_do_banco', pagina, paginas, rotulo='Páginas, início da tabela', tabela=tabela) }}
+<div class="table-responsive">
+<table class="table table-sm table-bordered">
+  <thead><tr>{% for c in colunas %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+  <tbody>
+  {% for linha in linhas %}
+    <tr>{% for valor in linha %}<td class="small">{{ valor if valor is not none else '—' }}</td>{% endfor %}</tr>
+  {% else %}
+    <tr><td colspan="{{ colunas|length }}" class="text-body-secondary">Tabela vazia.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{{ paginacao('gestao.tabela_do_banco', pagina, paginas, rotulo='Páginas, fim da tabela', tabela=tabela) }}
+{% endblock %}

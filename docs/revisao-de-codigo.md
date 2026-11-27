@@ -3,7 +3,9 @@
 Revisão técnica feita sobre a versão entregue no pacote, **antes** da inspeção da equipe.
 
 > **Atualização de 24/11:** o código ganhou cadastro de curso, anexo de material, botões de voltar e
-> limpeza do login com erro. Os pontos da parte nova são R-20 e R-21.
+> limpeza do login com erro. **Atualização de 25/11:** edição e exclusão de curso, edição de
+> atividades e perguntas, links de vídeo, eventos paginados, visualização do banco e contas de
+> usuário. Os pontos da parte nova são R-20 a R-30.
 
 ## Como foi feita
 
@@ -67,6 +69,15 @@ Severidade: **Média** (vale tratar antes de uso real) · **Baixa** (melhoria ou
 | R-19 | `tests/integration/test_certificado.py` (CT-08) | A medição dos 5 s é feita no serviço, sem passar pelo HTTP; vale para o ambiente local (A-04) | Info | Complementar com medição pela interface no relatório |
 | R-20 | `app/services/materiais.py` | O upload confere extensão e assinatura (primeiros bytes) e limita a 20 MB, mas não examina o arquivo inteiro: um PDF ou Office pode trazer macros ou scripts. Não há varredura de vírus nem cota por curso, e os arquivos ficam no disco local | Baixa | Varredura antivírus, cota por curso e armazenamento externo |
 | R-21 | `app/services/cadastro.py` | Todo curso novo recebe as 10 questões-modelo e não há tela para editá-las: dois cursos novos têm exatamente a mesma avaliação | Info | Cadastro e edição de questões pela interface |
+| R-22 | `app/services/banco.py` | A tela do banco mostra todos os dados (nomes, matrículas, eventos) a qualquer administrador; só o hash da senha fica oculto. Em produção, o acesso a dados pessoais precisaria de justificativa e registro | Baixa | Restringir a poucos perfis e registrar cada consulta |
+| R-23 | `app/services/conteudo.py` (`validar_link`) | O link de vídeo só tem o formato validado (http ou https): o sistema não confere se o destino existe nem se é seguro, e o colaborador sai do portal ao clicar | Baixa | Lista de domínios permitidos (YouTube, Teams) |
+| R-24 | `app/services/cadastro.py` (`excluir_curso`) | A exclusão de curso é definitiva, sem lixeira. Já é mitigada por bloqueio quando há histórico e pela confirmação digitando o código | Info | Exclusão lógica (marcar como excluído) |
+| R-25 | `app/services/banco.py` | Três consultas montam o SQL com nomes de tabela e coluna lidos do próprio banco (nunca da URL direta); o `bandit` aponta B608 e a justificativa está no código (`nosec`). Vale conferir na inspeção | Baixa | Revisar a justificativa; manter os testes de nome malicioso |
+| R-26 | `app/routes/usuarios.py` | A senha inicial é definida pelo administrador e repassada à pessoa; **não há troca obrigatória no primeiro acesso** (a pessoa já pode trocar a própria senha em `/conta/senha`) | Baixa | Forçar a troca no primeiro login |
+| R-27 | `app/routes/usuarios.py` | **Corrigido em 25/11:** contas agora podem ser desativadas (a conta deixa de entrar e a sessão aberta cai) ou excluídas quando não têm histórico; há proteção contra desativar a própria conta e o último administrador | Corrigido | Tratado por migração automática (`usuario.ativo`) |
+| R-28 | `app/services/usuarios.py` | A política de senha é simples (8 a 64 caracteres, uma letra e um número): aceita senhas fracas e comuns, como `senha1234` | Info | Lista de senhas comuns ou exigir mais variedade |
+| R-29 | `app/routes/conta.py` | A troca da própria senha exige a senha atual, mas não limita as tentativas erradas: quem roubar uma sessão aberta poderia tentar adivinhá-la (mesmo problema do R-01) | Baixa | Limitar as tentativas, como no login |
+| R-30 | `app/services/usuarios.py` | Conta desativada mantém nome, matrícula e setor no banco. A exclusão só vale para quem nunca fez nada; não há anonimização de dados pessoais (LGPD) | Info | Rotina de anonimização após prazo de retenção |
 
 ## Resumo
 
@@ -75,5 +86,5 @@ estático; R-14: a falha de CSRF mostra a página 400 padrão em inglês). Um su
 acesso negado com caminho longo, foi descartado depois de testar: só rotas de administração são
 gravadas e uma URL longa dá 404 sem entrar no log.
 
-21 achados abertos: 2 médios, 15 baixos, 4 informativos. Nenhum bloqueia a demonstração do
+29 achados abertos: 2 médios, 20 baixos, 7 informativos (e 1 já corrigido, o R-27). Nenhum bloqueia a demonstração do
 fluxo principal. Os dois médios (R-01, R-02) são os que mais importariam fora do protótipo.

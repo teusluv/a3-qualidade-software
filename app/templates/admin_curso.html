@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% block titulo %}Gerenciar {{ curso['codigo'] }}{% endblock %}
+{% block conteudo %}
+{% set v = valores %}
+<a class="btn btn-outline-secondary btn-sm mb-3" href="{{ url_for('admin.painel') }}">&larr; Voltar à administração</a>
+<h1 class="h4 mb-1">{{ curso['codigo'] }} · {{ curso['titulo'] }}</h1>
+<p class="small text-body-secondary">Situação: {{ curso['status'] }} · Atalhos:
+  <a href="#dados">Dados</a> · <a href="#atividades">Atividades</a> · <a href="#questoes">Perguntas e respostas</a> ·
+  <a href="#links">Vídeos e links</a> · <a href="#material">Material</a> · <a href="#concluintes">Concluintes</a> ·
+  <a href="#excluir">Excluir</a></p>
+
+{# ---------------- dados ---------------- #}
+<h2 class="h5 mt-4" id="dados">Dados do curso</h2>
+{% if erros %}
+<div class="alert alert-danger" role="alert">
+  <strong>Corrija antes de salvar:</strong>
+  <ul class="mb-0">{% for e in erros %}<li>{{ e }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+<form method="post" action="{{ url_for('gestao.editar_curso', curso_id=curso['id']) }}" class="card card-body mb-3">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row g-3">
+    <div class="col-sm-4">
+      <label class="form-label" for="codigo">Código</label>
+      <input class="form-control" id="codigo" name="codigo" maxlength="10" required pattern="[A-Za-z0-9]{1,10}"
+             title="De 1 a 10 letras (sem acento) ou números, sem espaços" aria-describedby="ajuda-codigo"
+             value="{{ v.get('codigo', curso['codigo']) }}">
+    </div>
+    <div class="col-sm-8">
+      <label class="form-label" for="titulo">Título</label>
+      <input class="form-control" id="titulo" name="titulo" maxlength="120" required value="{{ v.get('titulo', curso['titulo']) }}">
+    </div>
+    <div class="col-12">
+      <div id="ajuda-codigo" class="form-text">
+        Código: 1 a 10 caracteres, só letras sem acento e números, em maiúsculas, <strong>sem repetir</strong>.
+        Usados por outros cursos: <strong>{{ codigos_dos_outros|join(', ') or 'nenhum' }}</strong>.
+      </div>
+    </div>
+    <div class="col-sm-3">
+      <label class="form-label" for="carga_horaria">Carga horária (h)</label>
+      <input class="form-control" id="carga_horaria" name="carga_horaria" type="number" min="1" max="200" required value="{{ v.get('carga_horaria', curso['carga_horaria']) }}">
+    </div>
+    <div class="col-sm-3">
+      <label class="form-label" for="nota_minima">Nota mínima (%)</label>
+      <input class="form-control" id="nota_minima" name="nota_minima" type="number" min="{{ nota_minima_padrao }}" max="100" required value="{{ v.get('nota_minima', curso['nota_minima']) }}">
+    </div>
+    <div class="col-sm-3">
+      <label class="form-label" for="setor">Setor</label>
+      <select class="form-select" id="setor" name="setor">
+        <option value="">Todos</option>
+        {% set setor_atual = v.get('setor', curso['setor'] or '') %}
+        {% for s in setores %}<option value="{{ s }}" {{ 'selected' if setor_atual == s }}>{{ s }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <label class="form-label" for="status">Situação</label>
+      <select class="form-select" id="status" name="status">
+        {% set status_atual = v.get('status', curso['status']) %}
+        {% for s in status_edicao %}<option value="{{ s }}" {{ 'selected' if status_atual == s }}>{{ s }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <label class="form-label" for="data_inicio">Início do período</label>
+      <input class="form-control" id="data_inicio" name="data_inicio" type="date" required value="{{ v.get('data_inicio', curso['data_inicio']) }}">
+    </div>
+    <div class="col-sm-3">
+      <label class="form-label" for="data_fim">Fim do período</label>
+      <input class="form-control" id="data_fim" name="data_fim" type="date" required value="{{ v.get('data_fim', curso['data_fim']) }}">
+    </div>
+    <div class="col-sm-6 d-flex align-items-end">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="obrigatorio" name="obrigatorio"
+               {{ 'checked' if (v.get('obrigatorio') if v else curso['obrigatorio']) }}>
+        <label class="form-check-label" for="obrigatorio">Curso obrigatório</label>
+      </div>
+    </div>
+  </div>
+  <p class="small text-body-secondary mt-3 mb-2">Mudar a nota mínima vale para as próximas avaliações; certificados já emitidos não mudam.</p>
+  <div><button type="submit" class="btn btn-primary">Salvar dados</button></div>
+</form>
+
+{# ---------------- atividades ---------------- #}
+<h2 class="h5 mt-4" id="atividades">Atividades</h2>
+<p class="small text-body-secondary">A avaliação só abre quando o colaborador conclui <strong>todas</strong> as atividades. Se você adicionar uma atividade, quem já tinha concluído tudo precisa concluir a nova. Uma atividade já concluída por alguém não pode ser removida (só renomeada).</p>
+<ul class="list-group mb-3">
+  {% for a in atividades %}
+  <li class="list-group-item">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <span class="text-body-secondary">{{ a['ordem'] }}.</span>
+      <form method="post" class="d-flex flex-grow-1 gap-2 m-0" action="{{ url_for('gestao.editar_atividade', atividade_id=a['id']) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="visually-hidden" for="atv{{ a['id'] }}">Título da atividade {{ a['ordem'] }}</label>
+        <input class="form-control form-control-sm" id="atv{{ a['id'] }}" name="titulo" maxlength="100" required value="{{ a['titulo'] }}">
+        <button type="submit" class="btn btn-outline-primary btn-sm">Salvar</button>
+      </form>
+      <span class="small text-body-secondary">{{ a['conclusoes'] }} conclusão(ões)</span>
+      <form method="post" class="m-0" action="{{ url_for('gestao.remover_atividade', atividade_id=a['id']) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-danger btn-sm">Remover</button>
+      </form>
+    </div>
+  </li>
+  {% else %}
+  <li class="list-group-item text-body-secondary">Nenhuma atividade cadastrada.</li>
+  {% endfor %}
+</ul>
+<form method="post" class="d-flex flex-wrap gap-2 align-items-end" action="{{ url_for('gestao.criar_atividade', curso_id=curso['id']) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="flex-grow-1">
+    <label class="form-label small mb-1" for="nova-atividade">Nova atividade</label>
+    <input class="form-control form-control-sm" id="nova-atividade" name="titulo" maxlength="100" required>
+  </div>
+  <button type="submit" class="btn btn-primary btn-sm">Adicionar atividade</button>
+</form>
+
+{# ---------------- questões ---------------- #}
+<h2 class="h5 mt-4" id="questoes">Perguntas e respostas da avaliação</h2>
+<p class="small text-body-secondary">A avaliação usa <strong>todas</strong> as perguntas abaixo, cada uma com 4 respostas e <strong>uma</strong> certa. Alterações valem para as próximas tentativas; notas já registradas não mudam. {{ questoes|length }} pergunta(s) cadastrada(s).</p>
+{% if not questoes %}<div class="alert alert-warning" role="alert">Sem perguntas, o curso não tem avaliação e ninguém consegue ser aprovado.</div>{% endif %}
+{% for q in questoes %}
+<details class="card mb-2">
+  <summary class="card-body py-2"><strong>{{ q['ordem'] }}.</strong> {{ q['enunciado'] }}
+    <span class="badge text-bg-success ms-1">certa: {{ q['correta']|upper }}</span></summary>
+  <div class="card-body border-top">
+    <form method="post" action="{{ url_for('gestao.editar_questao', questao_id=q['id']) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="form-label" for="enun{{ q['id'] }}">Pergunta</label>
+      <textarea class="form-control mb-2" id="enun{{ q['id'] }}" name="enunciado" rows="2" maxlength="300" required>{{ q['enunciado'] }}</textarea>
+      {% for letra in ['a', 'b', 'c', 'd'] %}
+      <div class="input-group input-group-sm mb-1">
+        <span class="input-group-text">{{ letra|upper }}</span>
+        <label class="visually-hidden" for="op{{ letra }}{{ q['id'] }}">Resposta {{ letra|upper }}</label>
+        <input class="form-control" id="op{{ letra }}{{ q['id'] }}" name="opcao_{{ letra }}" maxlength="150" required value="{{ q['opcao_' ~ letra] }}">
+        <div class="input-group-text">
+          <input class="form-check-input mt-0" type="radio" name="correta" value="{{ letra }}" id="ce{{ letra }}{{ q['id'] }}" {{ 'checked' if q['correta'] == letra }} required>
+          <label class="ms-1" for="ce{{ letra }}{{ q['id'] }}">certa</label>
+        </div>
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary btn-sm mt-2">Salvar pergunta</button>
+    </form>
+    <form method="post" class="mt-2" action="{{ url_for('gestao.remover_questao', questao_id=q['id']) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-outline-danger btn-sm">Remover pergunta</button>
+    </form>
+  </div>
+</details>
+{% endfor %}
+<details class="card mb-3">
+  <summary class="card-body py-2 text-primary">+ Adicionar pergunta</summary>
+  <div class="card-body border-top">
+    <form method="post" action="{{ url_for('gestao.criar_questao', curso_id=curso['id']) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="form-label" for="nova-enun">Pergunta</label>
+      <textarea class="form-control mb-2" id="nova-enun" name="enunciado" rows="2" maxlength="300" required></textarea>
+      {% for letra in ['a', 'b', 'c', 'd'] %}
+      <div class="input-group input-group-sm mb-1">
+        <span class="input-group-text">{{ letra|upper }}</span>
+        <label class="visually-hidden" for="nova-op{{ letra }}">Resposta {{ letra|upper }}</label>
+        <input class="form-control" id="nova-op{{ letra }}" name="opcao_{{ letra }}" maxlength="150" required>
+        <div class="input-group-text">
+          <input class="form-check-input mt-0" type="radio" name="correta" value="{{ letra }}" id="nova-ce{{ letra }}" required>
+          <label class="ms-1" for="nova-ce{{ letra }}">certa</label>
+        </div>
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary btn-sm mt-2">Adicionar pergunta</button>
+    </form>
+  </div>
+</details>
+
+{# ---------------- links de vídeo ---------------- #}
+<h2 class="h5 mt-4" id="links">Vídeos e links</h2>
+<p class="small text-body-secondary">Indique o endereço de um vídeo (YouTube, Teams, outro site). O colaborador clica e é <strong>direcionado</strong> ao endereço, em outra aba. O sistema não guarda o vídeo, só o link. São aceitos endereços que começam com <code>http://</code> ou <code>https://</code>.</p>
+<ul class="list-group mb-3">
+  {% for l in links %}
+  <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <span>{{ l['titulo'] }} <span class="small text-body-secondary">{{ l['url'] }}</span></span>
+    <span class="d-flex gap-2">
+      <a class="btn btn-outline-primary btn-sm" href="{{ l['url'] }}" target="_blank" rel="noopener noreferrer">Abrir</a>
+      <form method="post" class="m-0" action="{{ url_for('gestao.remover_link', link_id=l['id']) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-danger btn-sm">Remover</button>
+      </form>
+    </span>
+  </li>
+  {% else %}
+  <li class="list-group-item text-body-secondary">Nenhum link cadastrado.</li>
+  {% endfor %}
+</ul>
+<form method="post" class="row g-2 align-items-end" action="{{ url_for('gestao.criar_link', curso_id=curso['id']) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="col-md-4">
+    <label class="form-label small mb-1" for="link-titulo">Título</label>
+    <input class="form-control form-control-sm" id="link-titulo" name="titulo" maxlength="100" required>
+  </div>
+  <div class="col-md-6">
+    <label class="form-label small mb-1" for="link-url">Endereço (URL)</label>
+    <input class="form-control form-control-sm" id="link-url" name="url" type="url" maxlength="500" required placeholder="https://...">
+  </div>
+  <div class="col-md-2"><button type="submit" class="btn btn-primary btn-sm w-100">Adicionar</button></div>
+</form>
+
+{# ---------------- material ---------------- #}
+<h2 class="h5 mt-4" id="material">Material (arquivos)</h2>
+{% if materiais %}
+<ul class="list-group mb-3">
+  {% for m in materiais %}
+  <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+    <span>{{ m['nome_original'] }} <span class="small text-body-secondary">({{ (m['tamanho'] / 1024)|round|int }} KB)</span></span>
+    <span class="d-flex gap-2">
+      <a class="btn btn-outline-primary btn-sm" href="{{ url_for('cursos.baixar_material', curso_id=curso['id'], material_id=m['id']) }}">Baixar</a>
+      <form method="post" class="m-0" action="{{ url_for('admin.remover_material', material_id=m['id']) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-danger btn-sm">Remover</button>
+      </form>
+    </span>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="small text-body-secondary">Nenhum material anexado.</p>
+{% endif %}
+<form method="post" enctype="multipart/form-data" class="d-flex flex-wrap gap-2 align-items-end"
+      action="{{ url_for('admin.enviar_material', curso_id=curso['id']) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="flex-grow-1">
+    <label class="form-label small mb-1" for="arquivo">Anexar material ({{ extensoes }}; até 20 MB)</label>
+    <input class="form-control form-control-sm" type="file" id="arquivo" name="arquivo">
+  </div>
+  <button type="submit" class="btn btn-primary btn-sm">Anexar</button>
+</form>
+
+{# ---------------- concluintes ---------------- #}
+<h2 class="h5 mt-4" id="concluintes">Quem concluiu este curso</h2>
+<p class="small text-body-secondary">Histórico de conclusões (quem tem certificado). Fica disponível mesmo se o curso for arquivado.</p>
+<div class="table-responsive">
+<table class="table table-sm">
+  <thead><tr><th>Nome</th><th>Matrícula</th><th>Setor</th><th>Melhor nota</th><th>Concluído em</th><th>Código do certificado</th></tr></thead>
+  <tbody>
+  {% for c in concluintes %}
+    <tr><td>{{ c['nome'] }}</td><td>{{ c['matricula'] }}</td><td>{{ c['setor'] }}</td><td>{{ c['melhor_nota'] }}%</td>
+        <td>{{ c['concluido_em']|data_br }}</td><td class="small">{{ c['codigo'] }}</td></tr>
+  {% else %}
+    <tr><td colspan="6" class="text-body-secondary">Ninguém concluiu este curso ainda.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{# ---------------- excluir ---------------- #}
+<h2 class="h5 mt-4" id="excluir">Excluir curso</h2>
+<div class="card border-danger mb-5">
+  <div class="card-body">
+    {% if tem_historico %}
+    <p class="mb-1"><strong>Este curso não pode ser excluído</strong>, porque há colaboradores que o iniciaram ou concluíram. Excluir apagaria o histórico deles (RN-05).</p>
+    <p class="small text-body-secondary mb-0">Para tirá-lo do catálogo sem perder o histórico, mude a situação para <strong>arquivado</strong> em "Dados do curso".</p>
+    {% else %}
+    <p class="mb-2">Ninguém iniciou este curso, então ele pode ser excluído. Isto apaga também suas atividades, perguntas, links e arquivos anexados, e <strong>não tem volta</strong>.</p>
+    <form method="post" class="d-flex flex-wrap gap-2 align-items-end" action="{{ url_for('gestao.excluir_curso', curso_id=curso['id']) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div>
+        <label class="form-label small mb-1" for="confirmacao">Digite o código <strong>{{ curso['codigo'] }}</strong> para confirmar</label>
+        <input class="form-control form-control-sm" id="confirmacao" name="confirmacao" autocomplete="off" required>
+      </div>
+      <button type="submit" class="btn btn-danger btn-sm">Excluir curso</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

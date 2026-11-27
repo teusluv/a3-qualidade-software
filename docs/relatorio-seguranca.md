@@ -80,3 +80,50 @@ indevido e falsificação de requisição. Os dois alertas de configuração que
 foram corrigidos, com 31 testes novos para impedir que voltem, e a regressão completa (205
 testes) passou sem nenhuma quebra. Restam apenas itens de implantação: HSTS e cookie `Secure`
 (que dependem de HTTPS) e o cabeçalho `Server` (que depende do servidor de produção).
+
+
+## 6. Atualização da implementação e testes — 27/11/2026
+
+Após novas alterações no projeto, foi realizada uma validação da implementação de segurança e da suíte automatizada.
+
+### 6.1 Proteção contra força bruta
+
+A configuração atual estabelece:
+
+- Limite de 3 falhas por matrícula.
+- Limite de 10 falhas por origem.
+- Janela de contagem de 10 minutos.
+- Bloqueio temporário de 5 minutos.
+- Resposta HTTP 429 durante o bloqueio.
+- Mensagem genérica, sem revelar a existência da matrícula.
+- Registro do evento `login_bloqueado`, sem armazenar a senha digitada.
+
+Os testes automatizados específicos verificam o bloqueio por matrícula, o bloqueio por origem, a recusa de credenciais corretas durante o bloqueio, a limpeza do contador após autenticação válida e o registro dos eventos.
+
+**Limitação:** o controle de tentativas utiliza memória da instância da aplicação. Portanto, os contadores são reiniciados quando uma nova instância é criada. Para implantação com múltiplos processos ou servidores, recomenda-se utilizar armazenamento compartilhado.
+
+### 6.2 Cabeçalhos HTTP
+
+A implementação mantém os seguintes cabeçalhos:
+
+- Content-Security-Policy;
+- X-Frame-Options;
+- X-Content-Type-Options;
+- Referrer-Policy;
+- Permissions-Policy.
+
+O cabeçalho Strict-Transport-Security é enviado somente quando a configuração de cookie seguro está habilitada, condição destinada ao ambiente HTTPS.
+
+A identificação do servidor (`Server`) permanece como limitação de implantação, dependendo da configuração do servidor WSGI e do proxy reverso.
+
+### 6.3 Regressão automatizada
+
+Em 27/11/2026, a suíte completa do projeto foi executada duas vezes consecutivas:
+
+- Primeira execução: 471 testes aprovados.
+- Segunda execução: 471 testes aprovados.
+- Resultado: nenhuma falha nas duas execuções.
+
+O Ruff também foi executado nos arquivos `app/auth.py`, `app/config.py` e `app/__init__.py`, sem apontar problemas.
+
+**Observação:** os 471 testes correspondem à suíte automatizada completa do projeto. Esse número não representa uma nova execução da bateria manual OWASP de 83 verificações realizada em 18/11/2026.

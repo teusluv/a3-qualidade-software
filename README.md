@@ -40,7 +40,7 @@ python -m venv .venv
 pip install -r requirements.txt
 
 python seed.py                   # cria o banco com dados fictícios (pode repetir)
-pytest                           # roda os 260 testes (leva alguns segundos)
+pytest                           # roda os 440 testes (leva alguns segundos)
 flask --app app run --debug      # abre em http://127.0.0.1:5000
 ```
 
@@ -65,6 +65,21 @@ Para sair do ambiente virtual: `deactivate`.
 | Colaborador | 1002 | colab123 | Farmácia |
 | Administrador | 9001 | admin123 | TI |
 
+### Como criar outras contas
+
+Entre como administrador e abra **Administração → Contas de usuário**. Preencha matrícula, nome,
+setor, perfil (colaborador ou administrador) e senha inicial. Regras:
+
+| Campo | Regra |
+|---|---|
+| Matrícula | Só números, de 3 a 10, **sem repetir**. É o que a pessoa digita para entrar |
+| Nome e setor | Nome de 3 a 100 caracteres; setor de 2 a 40. Um setor novo passa a valer nos cursos |
+| Senha | De 8 a 64 caracteres, com pelo menos uma letra e um número. Guardada só como hash |
+| Redefinir senha | Na mesma tela, em cada linha |
+| Desativar / reativar | A conta **deixa de entrar na hora** (até quem já está logado), mas o **histórico fica** (cursos, certificados, eventos). Não dá para desativar a própria conta nem o último administrador ativo |
+| Excluir | **Só** conta sem nenhum histórico (por exemplo, criada por engano). Com histórico, desative |
+| Alterar a própria senha | A pessoa clica no próprio nome no menu: informa a senha atual, a nova (mesma regra) e a confirmação |
+
 ### Cursos de demonstração
 
 | Curso | Nota mínima | Situação | Quem vê |
@@ -83,9 +98,11 @@ Para sair do ambiente virtual: `deactivate`.
 5. Aprovado? Clique em **Emitir / baixar certificado**: o PDF traz nome, matrícula, curso,
    carga horária, data e código.
 6. Abra **Verificar certificado** (menu), cole o código: "Autêntico", com o nome mascarado.
-7. Entre como **9001 / admin123** e abra **Administração**: cadastre um curso novo, **anexe um
-   material** (PDF, Word, PowerPoint, texto ou imagem, até 20 MB), altere a situação de um curso e
-   veja os eventos registrados. Depois entre como colaborador, inicie o curso novo e baixe o material.
+7. Entre como **9001 / admin123** e abra **Administração**: cadastre um curso (veja as regras do
+   código na própria tela) e, na página que abre, **edite** os dados, as atividades e as **perguntas e
+   respostas**, adicione **links de vídeo**, **anexe material** (PDF, Word, PowerPoint, texto ou
+   imagem, até 20 MB) e veja **quem concluiu**. Em **Ver o banco de dados** você consulta as tabelas.
+   Depois entre como colaborador, inicie o curso novo e abra o vídeo e o material.
    Como colaborador, abrir `/admin/` dá "Acesso negado" (CA-02).
 
 ---
@@ -102,13 +119,18 @@ Para sair do ambiente virtual: `deactivate`.
 | T-04 Avaliação e resultado | `/cursos/<id>/avaliacao` e `/cursos/<id>/resultado/<id>` | Logado |
 | T-05 Verificação pública | `/verificar` | **Qualquer pessoa, sem login** |
 | Histórico | `/historico` | Logado |
-| Administração (cadastro de curso, anexo de material, situação dos cursos, eventos) | `/admin/` | Só administrador |
+| Administração: lista de cursos, cadastro, últimos 20 eventos | `/admin/` | Só administrador |
+| Gestão de um curso (dados, atividades, perguntas e respostas, links, material, concluintes, exclusão) | `/admin/cursos/<id>` | Só administrador |
+| Contas de usuário (criar, redefinir senha, desativar, reativar, excluir) | `/admin/usuarios/` | Só administrador |
+| Alterar a própria senha | `/conta/senha` (clique no seu nome no menu) | Qualquer usuário logado |
+| Todos os eventos, por página | `/admin/eventos` | Só administrador |
+| Banco de dados (somente leitura) | `/admin/banco` | Só administrador |
 
 Outros endereços: `POST /cursos/<id>/iniciar`, `POST /cursos/<id>/atividades/<id>/concluir`,
 `POST /cursos/<id>/certificado`, `GET /certificados/<id>/pdf`, `GET /cursos/<id>/materiais/<id>`
-(download do material), `POST /logout`, `POST /admin/cursos` (cadastrar curso),
-`POST /admin/cursos/<id>/status`, `POST /admin/cursos/<id>/materiais` (anexar) e
-`POST /admin/materiais/<id>/remover`.
+(download do material), `POST /logout`, `POST /admin/cursos` (cadastrar), `POST /admin/cursos/<id>/editar`,
+`POST /admin/cursos/<id>/excluir`, `POST /admin/cursos/<id>/status`, e as ações de atividades, questões,
+links e material em `/admin/...`.
 
 ### Regras de negócio adotadas
 
@@ -119,6 +141,39 @@ Outros endereços: `POST /cursos/<id>/iniciar`, `POST /cursos/<id>/atividades/<i
 | RN-03 | Código único, gerado com `secrets` e protegido por restrição `UNIQUE`. A consulta pública mostra só o mínimo, com o nome parcialmente mascarado ("Carla M. L.") |
 | RN-04 | Curso obrigatório vale para todos; os demais, por setor |
 | RN-05 | Arquivar um curso não apaga o histórico de quem o concluiu |
+
+### Código do curso: o que aceita e como não repetir
+
+| Regra | Detalhe |
+|---|---|
+| Tamanho | De 1 a 10 caracteres |
+| Caracteres | Só **letras sem acento (A a Z) e números (0 a 9)**; sem espaço nem símbolo. Exemplo: `SEG01` |
+| Maiúsculas | O sistema grava em **MAIÚSCULAS** (`seg01` vira `SEG01`) |
+| Repetição | **Não pode repetir** (nem em minúsculas). O sistema recusa e mostra a mensagem |
+| Onde ver os já usados | Na tela de **cadastro** ("Códigos já usados: A, B, C, D") e na tela de **edição** do curso |
+
+### O que o administrador pode fazer em um curso
+
+| Ação | Regra importante |
+|---|---|
+| Editar dados | Nota mínima de 70 a 100; mudar vale para as próximas avaliações |
+| Atividades | Adicionar, renomear, remover. Não remove atividade já concluída por alguém |
+| Perguntas e respostas | Ver, editar, adicionar e remover; 4 respostas diferentes e **uma** certa |
+| Links de vídeo | Só `http://` e `https://`; abrem em outra aba para o colaborador |
+| Material | PDF, Word, PowerPoint, texto e imagens, até 20 MB |
+| Concluintes | Lista de quem concluiu (histórico do curso), mesmo se for arquivado |
+| Excluir | **Só se ninguém iniciou o curso** (RN-05); exige digitar o código. Com histórico, **arquive** |
+| Eventos | Painel mostra os **20 mais recentes**; "Ver todos" abre as páginas. **Nada é apagado** (auditoria) |
+
+O **histórico pessoal** do menu é do colaborador. O administrador consulta o histórico **por curso**
+(concluintes) e os **eventos**.
+
+### Onde fica o banco de dados
+
+O banco é **um arquivo SQLite**: `instance/portal.db`, dentro da pasta do projeto (os anexos ficam em
+`instance/uploads/`). Para ver tudo: **Administração → Ver o banco de dados** (somente leitura) ou o
+programa gratuito *DB Browser for SQLite*. Diagrama, dicionário e consultas de exemplo em
+`docs/banco-de-dados.md`.
 
 ### Hipóteses de trabalho (ambiguidades do plano, A-01 a A-08)
 
@@ -138,7 +193,7 @@ Estão em `app/config.py` ou no código, e podem mudar sem refazer a lógica.
 ### Fora do escopo do protótipo
 
 Gestor, relatórios e aviso de vencimento (RF-11, RF-12, caso CT-18); edição das questões pela
-interface (todo curso novo recebe 4 atividades e 10 questões-modelo); integração real com RH/PEP; teste de carga com 500
+interface; integração real com RH/PEP; envio de vídeo em arquivo (o sistema guarda só o **link**); teste de carga com 500
 acessos (RNF-01) e medição de disponibilidade (RNF-03).
 
 ---
@@ -172,12 +227,18 @@ portal/
 │   ├── routes/              # o que cada endereço faz (recebe o pedido e responde)
 │   │   ├── cursos.py        #   catálogo, curso, atividades, avaliação, resultado, histórico
 │   │   ├── certificados.py  #   emissão, PDF e verificação pública
-│   │   └── admin.py         #   cadastro de curso, anexo de material, situação dos cursos, eventos
+│   │   ├── admin.py         #   painel, cadastro de curso, situação, anexo e remoção de material
+│   │   ├── gestao.py        #   gestão do curso: editar, excluir, atividades, perguntas, links, eventos, banco
+│   │   ├── usuarios.py      #   contas de usuário: lista, criar, redefinir senha, desativar, excluir
+│   │   └── conta.py         #   a própria pessoa troca a senha
 │   ├── services/            # regras de negócio (sem Flask: fáceis de testar)
 │   │   ├── avaliacao.py     #   nota, aprovação, tentativas (funções puras)
 │   │   ├── cursos.py        #   consultas de catálogo, inscrição, progresso, tentativas
 │   │   ├── certificado.py   #   emissão única, código, PDF, consulta pública
-│   │   ├── cadastro.py      #   validação e criação de curso novo
+│   │   ├── cadastro.py      #   validação, criação, edição e exclusão de curso
+│   │   ├── conteudo.py      #   atividades, perguntas e respostas, links de vídeo
+│   │   ├── banco.py         #   visualização somente leitura do banco
+│   │   ├── usuarios.py      #   validação de contas e senhas, criação e redefinição
 │   │   ├── materiais.py     #   upload seguro do material (extensão, assinatura, nome gerado)
 │   │   └── logs.py          #   registro de eventos
 │   ├── templates/           # as páginas HTML
@@ -264,7 +325,8 @@ Cada documento existe em Markdown (`.md`), em Word (`docs/word/`) e em PDF (`doc
 | `execucao-testes.md` | **Registro** de cada execução: esperado, obtido, status, evidência | **Equipe** |
 | `defeitos.md` | **Registro** de defeitos reais, com evidência e classificação | **Equipe** |
 | `inspecao.md` | Checklist da inspeção, tabela de achados, análise estática, limitações conhecidas | **Equipe** |
-| `revisao-de-codigo.md` | 21 pontos de melhoria apontados numa revisão técnica (abertos, para a equipe avaliar) | Pronto; a equipe decide o que vira defeito |
+| `banco-de-dados.md` | **Onde o banco fica**, como ver, diagrama, dicionário de tabelas e consultas de exemplo | Pronto |
+| `revisao-de-codigo.md` | 30 pontos de melhoria apontados numa revisão técnica (abertos, para a equipe avaliar) | Pronto; a equipe decide o que vira defeito |
 | `avaliacao-criterios.md` | Avaliação de CA-01 a CA-17 e dos 7 atributos de qualidade (entrega final) | **Equipe** |
 | `divisao-de-tarefas.md` | Quem faz o quê e o cronograma até 25/11 e 02/12 | Pronto; ajustem os nomes |
 | `ci-cd.md` | Proposta de CI/CD para o relatório | Pronto; a equipe revisa |
@@ -307,7 +369,10 @@ Resumo do caminho (detalhes e responsáveis em `docs/divisao-de-tarefas.md`):
 | Página sem estilo (tudo "cru") | Sem internet: o Bootstrap vem de CDN | Conecte à internet (ou baixe o Bootstrap para `app/static/`) |
 | `Address already in use` | A porta 5000 está ocupada | `flask --app app run --port 5001` |
 | `pytest` não encontrado | Ambiente virtual desativado | Ative o `.venv` e rode `pip install -r requirements.txt` |
+| Link de vídeo recusado | Só entram endereços que começam com `http://` ou `https://` | Cole o endereço completo, com `https://` |
+| Não consigo excluir um curso | Ele tem colaboradores no histórico (RN-05) | Mude a situação para **arquivado** |
 | Anexo recusado: "Tipo de arquivo não permitido" ou "conteúdo não corresponde" | Só entram pdf, docx, pptx, txt, png, jpg e jpeg, e o conteúdo precisa ser do tipo da extensão | Use um arquivo real desses tipos, com até 20 MB |
+| Mensagem "Matrícula ou senha inválidas" para uma conta que existe | A conta pode estar **desativada** (a mensagem não revela isso) | Administração → Contas de usuário → Reativar |
 | Quer recomeçar do zero | Dados bagunçados na demonstração | Apague `instance/` e rode `python seed.py` |
 
 ---
@@ -315,8 +380,10 @@ Resumo do caminho (detalhes e responsáveis em `docs/divisao-de-tarefas.md`):
 ## 9. Limitações conhecidas
 
 - Sem bloqueio de tentativas de login e sem cabeçalhos de segurança (ver `docs/revisao-de-codigo.md`).
+- Contas: não há troca de senha **obrigatória** no primeiro acesso nem "esqueci minha senha" por e-mail
+  (o administrador redefine a senha).
 - As "atividades" apenas são marcadas como concluídas; o material de estudo pode ser anexado, mas o
-  sistema não confere se foi lido.
+  sistema não confere se foi lido. Os vídeos são links externos, não arquivos.
 - Os arquivos anexados ficam na pasta local `instance/uploads`; o upload confere extensão e assinatura
   do arquivo, mas não faz varredura de vírus.
 - O PDF não tem QR code; a assinatura é ilustrativa.

@@ -18,7 +18,7 @@ from flask import (
 from app.auth import login_required
 from app.config import MAX_TENTATIVAS
 from app.db import get_db
-from app.services import avaliacao, cursos, materiais
+from app.services import avaliacao, conteudo, cursos, materiais
 from app.services.logs import registrar
 
 bp = Blueprint("cursos", __name__)
@@ -110,6 +110,7 @@ def detalhe(curso_id: int):
         estado=estado,
         max_tentativas=MAX_TENTATIVAS,
         materiais=materiais.listar_materiais(db, curso_id),
+        links=conteudo.listar_links(db, curso_id),
     )
 
 

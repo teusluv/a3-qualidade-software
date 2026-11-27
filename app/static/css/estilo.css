@@ -28,3 +28,9 @@ main { max-width: 860px; }
   --bs-btn-active-bg: #495057;
   --bs-btn-active-border-color: #495057;
 }
+
+/* Trechos de código com contraste suficiente sobre o fundo claro (o rosa padrão do Bootstrap não passa). */
+code { color: #9c1c4a; }
+
+/* Rótulos invisíveis (leitor de tela) dentro de tabelas não podem escapar da rolagem da tabela. */
+.table-responsive { position: relative; }

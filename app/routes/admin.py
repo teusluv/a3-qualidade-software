@@ -13,9 +13,9 @@ from flask import (
 )
 
 from app.auth import perfil_required
-from app.config import EXTENSOES_PERMITIDAS, NOTA_MINIMA_PADRAO
+from app.config import NOTA_MINIMA_PADRAO
 from app.db import get_db
-from app.services import cadastro, materiais
+from app.services import cadastro, logs, materiais
 from app.services.logs import registrar
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -32,21 +32,18 @@ def _contexto(db, valores=None, erros=None) -> dict:
     cursos = db.execute(
         "SELECT id, codigo, titulo, status, data_inicio, data_fim FROM curso ORDER BY codigo"
     ).fetchall()
-    logs = db.execute(
-        "SELECT l.criado_em, l.acao, l.detalhe, u.matricula "
-        "FROM log l LEFT JOIN usuario u ON u.id = l.usuario_id "
-        "ORDER BY l.id DESC LIMIT 50"
-    ).fetchall()
+    eventos, _pagina, _paginas, total_eventos = logs.listar_eventos(db, 1)
     return {
         "cursos": cursos,
-        "materiais": {c["id"]: materiais.listar_materiais(db, c["id"]) for c in cursos},
-        "logs": logs,
+        "codigos_usados": [c["codigo"] for c in cursos],
+        "eventos": eventos,
+        "total_eventos": total_eventos,
+        "por_pagina": logs.EVENTOS_POR_PAGINA,
         "status_validos": STATUS_VALIDOS,
         "status_novo": cadastro.STATUS_NOVO,
         "setores": _setores(db),
         "valores": valores or {},
         "erros": erros or [],
-        "extensoes": ", ".join(EXTENSOES_PERMITIDAS),
         "nota_minima_padrao": NOTA_MINIMA_PADRAO,
     }
 
@@ -67,11 +64,11 @@ def criar_curso():
     if erros:
         return render_template("admin.html", **_contexto(db, request.form, erros)), 400
 
-    cadastro.criar_curso(db, dados)
+    novo_id = cadastro.criar_curso(db, dados)
     registrar(db, "curso_criado", g.usuario["id"], f"curso={dados['codigo']}")
     db.commit()
-    flash(f"Curso {dados['codigo']} cadastrado. Anexe o material abaixo, se quiser.", "success")
-    return redirect(url_for("admin.painel"))
+    flash(f"Curso {dados['codigo']} cadastrado. Complete o conteúdo abaixo.", "success")
+    return redirect(url_for("gestao.curso", curso_id=novo_id))
 
 
 @bp.post("/cursos/<int:curso_id>/status")
@@ -109,20 +106,22 @@ def enviar_material(curso_id: int):
         )
     except materiais.MaterialInvalidoError as erro:
         flash(str(erro), "warning")
-        return redirect(url_for("admin.painel"))
+        return redirect(url_for("gestao.curso", curso_id=curso_id) + "#material")
     registrar(db, "material_enviado", g.usuario["id"], f"curso={curso['codigo']}")
     db.commit()
     flash(f"Material anexado ao curso {curso['codigo']}.", "success")
-    return redirect(url_for("admin.painel"))
+    return redirect(url_for("gestao.curso", curso_id=curso_id) + "#material")
 
 
 @bp.post("/materiais/<int:material_id>/remover")
 @perfil_required("administrador")
 def remover_material(material_id: int):
     db = get_db()
-    if not materiais.remover_material(db, current_app.config["UPLOAD_FOLDER"], material_id):
+    material = db.execute("SELECT curso_id FROM material WHERE id = ?", (material_id,)).fetchone()
+    if material is None:
         abort(404)
+    materiais.remover_material(db, current_app.config["UPLOAD_FOLDER"], material_id)
     registrar(db, "material_removido", g.usuario["id"], f"material={material_id}")
     db.commit()
     flash("Material removido.", "success")
-    return redirect(url_for("admin.painel"))
+    return redirect(url_for("gestao.curso", curso_id=material["curso_id"]) + "#material")

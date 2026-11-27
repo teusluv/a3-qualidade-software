@@ -27,7 +27,7 @@
       {% if g.usuario %}
       <form method="post" action="{{ url_for('auth.logout') }}" class="d-flex align-items-center gap-2 m-0">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <span class="text-white small">{{ g.usuario['nome'] }}</span>
+        <a class="text-white small" href="{{ url_for('conta.senha') }}" title="Alterar minha senha">{{ g.usuario['nome'] }}</a>
         <button type="submit" class="btn btn-outline-light btn-sm">Sair</button>
       </form>
       {% endif %}
